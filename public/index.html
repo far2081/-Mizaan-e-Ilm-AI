@@ -1010,7 +1010,7 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
+              model: 'openai/gpt-oss-120b',
               messages: [{ role: 'user', content: 'Salam' }],
               max_tokens: 5
             })
@@ -1662,7 +1662,70 @@
       };
     }
 
-    // Live AI Router with Free Multi-Model Pipeline
+    function normalizeAIResult(data, traditionFilter) {
+      if (!data) return null;
+      let shortAnswer = data.shortAnswerUrdu || data.shortAnswer || data.answer || data.ruling || '';
+      let liveAi = data.liveAi || data.explanation || data.detailedExplanationUrdu || shortAnswer;
+      if (typeof liveAi === 'boolean') liveAi = shortAnswer;
+
+      let quran = [];
+      if (Array.isArray(data.quranicEvidence) && data.quranicEvidence.length > 0) {
+        quran = data.quranicEvidence;
+      } else if (data.quran) {
+        const qObj = data.quran;
+        quran = [{
+          originalArabicText: qObj.text || qObj.originalArabicText || qObj.arabic || '',
+          originalUrduText: qObj.translation || qObj.originalUrduText || qObj.urdu || '',
+          chapterUrdu: qObj.surah || qObj.chapterUrdu || '',
+          ayahNumber: qObj.ayah || qObj.ayahNumber || ''
+        }];
+      }
+
+      let hadith = [];
+      if (Array.isArray(data.hadithEvidence) && data.hadithEvidence.length > 0) {
+        hadith = data.hadithEvidence;
+      } else if (data.hadith) {
+        const hObj = data.hadith;
+        hadith = [{
+          originalArabicText: hObj.text || hObj.originalArabicText || hObj.arabic || '',
+          originalUrduText: hObj.translation || hObj.originalUrduText || hObj.urdu || '',
+          bookTitleUrdu: hObj.book || hObj.bookTitleUrdu || 'کتبِ احادیث',
+          hadithNumber: hObj.number || hObj.hadithNumber || '',
+          chapterUrdu: hObj.chapter || hObj.chapterUrdu || ''
+        }];
+      }
+
+      let positions = [];
+      if (Array.isArray(data.traditionPositions) && data.traditionPositions.length > 0) {
+        positions = data.traditionPositions.map(t => ({
+          tradition: (t.tradition || '').toLowerCase(),
+          traditionNameUrdu: t.traditionNameUrdu || t.tradition || '',
+          rulingLabelUrdu: t.rulingLabelUrdu || 'ماخذ: کتبِ فقہ و فتاویٰ',
+          positionSummaryUrdu: t.positionSummaryUrdu || t.ruling || t.position || shortAnswer,
+          aiExplanationUrdu: t.aiExplanationUrdu || t.explanation || liveAi
+        }));
+      } else if (data.fatwa && typeof data.fatwa === 'object') {
+        const f = data.fatwa;
+        if (f.Deobandi || f.deobandi) positions.push({ tradition: 'deobandi', traditionNameUrdu: 'مکتبِ فکر دیوبند (حنفی)', rulingLabelUrdu: 'ماخذ: فتاویٰ دارالعلوم دیوبند', positionSummaryUrdu: f.Deobandi || f.deobandi, aiExplanationUrdu: f.Deobandi || f.deobandi });
+        if (f.Barelvi || f.barelvi) positions.push({ tradition: 'barelvi', traditionNameUrdu: 'مکتبِ فکر اہلِ سنت (بریلوی)', rulingLabelUrdu: 'ماخذ: فتاویٰ رضویہ / بہارِ شریعت', positionSummaryUrdu: f.Barelvi || f.barelvi, aiExplanationUrdu: f.Barelvi || f.barelvi });
+        if (f.AhleHadith || f.ahle_hadith) positions.push({ tradition: 'ahle_hadith', traditionNameUrdu: 'مکتبِ فکر اہلِ حدیث', rulingLabelUrdu: 'ماخذ: فتاویٰ ثنائیہ / فتاویٰ علمائے حدیث', positionSummaryUrdu: f.AhleHadith || f.ahle_hadith, aiExplanationUrdu: f.AhleHadith || f.ahle_hadith });
+        if (f.Shia || f.shia) positions.push({ tradition: 'shia', traditionNameUrdu: 'مکتبِ فکر اہلِ تشیع (امامیہ)', rulingLabelUrdu: 'ماخذ: توضیح المسائل (سیستانی)', positionSummaryUrdu: f.Shia || f.shia, aiExplanationUrdu: f.Shia || f.shia });
+      }
+
+      return {
+        topicCategoryUrdu: data.topicCategoryUrdu || 'فقہی تحقیقات و فتاویٰ',
+        shortAnswerUrdu: shortAnswer,
+        liveAi: liveAi,
+        hasDisagreement: data.hasDisagreement || (positions.length > 1),
+        disagreementReasonUrdu: data.disagreementReasonUrdu || null,
+        quranicEvidence: quran,
+        hadithEvidence: hadith,
+        traditionPositions: positions,
+        isUnanswerable: false
+      };
+    }
+
+    // Live AI Router with Ultra-Fast Multi-Model Pipeline (Groq 120B / Qwen / Gemini / Pollinations)
     async function fetchFullIslamicResearchFromAI(question, traditionFilter) {
       const apiKey = getActiveApiKey();
       const traditionNamesUrdu = {
@@ -1676,15 +1739,15 @@
       const isSingleTradition = traditionFilter && traditionFilter !== 'all' && traditionNamesUrdu[traditionFilter];
       const selectedSchoolInstruction = isSingleTradition ? 
         'CRITICAL: The user wants the Fatwa STRICTLY and SOLELY according to ' + traditionNamesUrdu[traditionFilter] + '.\n' +
-        'DO NOT mention or mix other schools. Provide the DIRECT RULING (حکمِ شرعی: جائز / ناجائز / فرض / واجب / حرام / مکروہ / باطل) first, followed by clear concise reasoning and the exact book reference of THIS school.' :
-        'CRITICAL: Provide distinct, authentic rulings for ALL 4 schools of thought (Deobandi, Barelvi, Ahle Hadith, Shia) with exact classical books.';
+        'DO NOT mention or mix other schools. Provide the DIRECT RULING (حکمِ شرعی: جائز / ناجائز / فرض / واجب / حرام / مکروہ / باطل) first, followed by clear concise reasoning, specific Quran Ayah and Hadith for THIS specific question, and the exact classical book reference of THIS school.' :
+        'CRITICAL: Provide the DIRECT RULING (حکمِ شرعی) first, followed by specific Quran Ayah and Hadith for this question, and distinct authentic rulings for ALL 4 schools of thought (Deobandi, Barelvi, Ahle Hadith, Shia) with exact classical books.';
 
       const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authentic, source-locked Islamic scholarly research and Fatwa-reference system.\n' +
         'Answer the user\'s Islamic/Fiqh question with absolute accuracy, no filler text, and direct rulings in Urdu.\n' +
         selectedSchoolInstruction + '\n\n' +
         'RULES:\n' +
-        '1. Provide accurate Quranic Ayah with Surah name and authentic Urdu translation.\n' +
-        '2. Provide Sahih Hadith with Book Name (e.g. صحیح البخاری، صحیح مسلم، سنن ابی داود) and Hadith number.\n' +
+        '1. Provide accurate question-relevant Quranic Ayah with Surah name and authentic Urdu translation.\n' +
+        '2. Provide Sahih Hadith directly relevant to the question with Book Name (e.g. صحیح البخاری، صحیح مسلم، سنن ابی داود) and Hadith number.\n' +
         '3. Classical book citations: Deobandi (فتاویٰ دارالعلوم دیوبند / بہشتی زیور)، Barelvi (فتاویٰ رضویہ / بہارِ شریعت)، Ahle Hadith (فتاویٰ ثنائیہ / فتاویٰ خواتینِ اسلام)، Shia (توضیح المسائل سیستانی).\n\n' +
         'Return ONLY a valid JSON object matching this schema:\n' +
         '{\n' +
@@ -1706,9 +1769,83 @@
         '  "isUnanswerable": false\n' +
         '}';
 
-      const userPrompt = 'سوال: ' + question + (isSingleTradition ? ' (براہِ کرم صرف ' + traditionNamesUrdu[traditionFilter] + ' کے مطابق دو ٹوک حکمِ شرعی اور ماخذ تحریر فرمائیں)' : '');
+      const userPrompt = 'سوال: ' + question + (isSingleTradition ? ' (براہِ کرم صرف ' + traditionNamesUrdu[traditionFilter] + ' کے مطابق دو ٹوک حکمِ شرعی، متعلقہ قرآنی آیت اور حدیث تحریر فرمائیں)' : '');
 
-      // 1. Try Free Pollinations AI Endpoint (Fast, No Key Required, UTF-8 JSON)
+      // 1. Primary High-Speed Engine: Groq Models (openai/gpt-oss-120b, qwen/qwen3.8-27b)
+      const groqKey = (apiKey && apiKey.startsWith('gsk_')) ? apiKey : DEFAULT_GROQ_KEY;
+      if (groqKey) {
+        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'allam-2-7b'];
+        for (const m of groqModels) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7000);
+            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              signal: controller.signal,
+              headers: {
+                'Authorization': 'Bearer ' + groqKey,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: m,
+                messages: [
+                  { role: 'system', content: sysPrompt },
+                  { role: 'user', content: userPrompt }
+                ],
+                response_format: { type: 'json_object' }
+              })
+            });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              const data = await res.json();
+              const txt = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+              if (txt) {
+                const parsed = cleanAndParseJSON(txt);
+                const normalized = normalizeAIResult(parsed, traditionFilter);
+                if (normalized && normalized.shortAnswerUrdu && normalized.quranicEvidence.length > 0) {
+                  return normalized;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Groq model ' + m + ' fetch bypassed:', e);
+          }
+        }
+      }
+
+      // 2. Secondary Engine: User-Configured Gemini API Key
+      if (apiKey && apiKey.startsWith('AIza')) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        try {
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: sysPrompt + '\n\n' + userPrompt }] }],
+              generationConfig: { response_mime_type: 'application/json', temperature: 0.2 }
+            })
+          });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            const data = await res.json();
+            const txt = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text;
+            if (txt) {
+              const parsed = cleanAndParseJSON(txt);
+              const normalized = normalizeAIResult(parsed, traditionFilter);
+              if (normalized && normalized.shortAnswerUrdu) {
+                return normalized;
+              }
+            }
+          }
+        } catch (e) {
+          clearTimeout(timeoutId);
+          console.warn('Gemini API error/abort:', e);
+        }
+      }
+
+      // 3. Tertiary Engine: Free Pollinations AI Endpoint
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6500);
@@ -1730,44 +1867,14 @@
           const txt = await res.text();
           if (txt) {
             const parsed = cleanAndParseJSON(txt);
-            if (parsed && parsed.shortAnswerUrdu && parsed.traditionPositions && parsed.traditionPositions.length > 0) {
-              return parsed;
+            const normalized = normalizeAIResult(parsed, traditionFilter);
+            if (normalized && normalized.shortAnswerUrdu) {
+              return normalized;
             }
           }
         }
       } catch (err) {
         console.warn('Pollinations AI fetch bypassed:', err);
-      }
-
-      // 2. Try User-Configured Gemini API Key
-      if (apiKey && apiKey.startsWith('AIza')) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-        try {
-          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
-            method: 'POST',
-            signal: controller.signal,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: sysPrompt + '\n\n' + userPrompt }] }],
-              generationConfig: { response_mime_type: 'application/json', temperature: 0.2 }
-            })
-          });
-          clearTimeout(timeoutId);
-          if (res.ok) {
-            const data = await res.json();
-            const txt = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text;
-            if (txt) {
-              const parsed = cleanAndParseJSON(txt);
-              if (parsed && !parsed.isUnanswerable) {
-                return parsed;
-              }
-            }
-          }
-        } catch (e) {
-          clearTimeout(timeoutId);
-          console.warn('Gemini API error/abort:', e);
-        }
       }
 
       return null;
