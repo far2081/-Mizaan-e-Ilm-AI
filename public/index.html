@@ -2863,18 +2863,21 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
           { stage: '3. School Identification', status: 'success', detailsUrdu: 'مکتبِ فکر کا دائرہ: ' + (effectiveTradition === 'all' ? 'تمام مکاتب (دیوبندی، بریلوی، اہل حدیث، شیعہ)' : effectiveTradition) }
         ];
 
-        // 1. Try live AI structured scholarly research
+        // 1. SOURCE-FIRST PRIORITY: Check verified, pre-vetted thematic classical knowledge base
         let aiResult = null;
-        try {
-          aiResult = await fetchFullIslamicResearchFromAI(question, effectiveTradition);
-        } catch (err) {
-          console.warn('AI pipeline error:', err);
+        const thematic = generateThematicFatwa(question, { topic, topicUrdu }, effectiveTradition);
+        if (thematic) {
+          pipelineTrace.push({ stage: '4. Classical Source Lock', status: 'success', detailsUrdu: 'مستند کتبِ فقہ و احادیثِ صحیحہ سے مصدقہ جواب حاصل کر لیا گیا۔' });
+          aiResult = normalizeAIResult(thematic, effectiveTradition);
         }
 
-        // 2. If AI didn't return or timed out, use Comprehensive Grounded Synthesizer
+        // 2. If not in pre-vetted database, query Source-Locked AI with strict anti-hallucination rules
         if (!aiResult) {
-          const thematic = generateThematicFatwa(question, { topic, topicUrdu }, effectiveTradition);
-          aiResult = normalizeAIResult(thematic, effectiveTradition);
+          try {
+            aiResult = await fetchFullIslamicResearchFromAI(question, effectiveTradition);
+          } catch (err) {
+            console.warn('AI pipeline error:', err);
+          }
         }
 
         if (aiResult) {
@@ -2906,7 +2909,7 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
           let traditionPositions = aiResult.traditionPositions || [];
 
           let shortAnswerUrdu = aiResult.shortAnswerUrdu || 'مصدقہ شرعی مآخذ کے مطابق شرعی حکم درج ذیل ہے۔';
-          let actionAdviceUrdu = aiResult.actionAdviceUrdu || 'سائل کے لیے واضح شرعی ہدایت یہ ہے کہ اس حکم پر دیانت داری سے عمل کریں اور شبہات سے بچ کر احتیاط و تقویٰ کی راہ اختیار فرمائیں۔';
+          let actionAdviceUrdu = aiResult.actionAdviceUrdu || '';
           let liveAiExplanation = aiResult.liveAi || null;
           let hasDisagreement = aiResult.hasDisagreement;
           let disagreementReasonUrdu = aiResult.disagreementReasonUrdu;
@@ -2983,7 +2986,7 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
           return;
         }
 
-        // Offline / Local Database Fallback
+        // 3. Fallback to Local Offline Database Sources
         if (localSources.length > 0) {
           pipelineTrace.push({ stage: '4. Approved Source Search', status: 'success', detailsUrdu: 'لوکل ڈیٹابیس سے کل ' + localSources.length + ' مصدقہ مآخذ برآمد ہوئیں۔' });
           pipelineTrace.push({ stage: '5. Source Identity Verification', status: 'success', detailsUrdu: 'کتاب، مصنف، جلد اور صفحہ کی مصدقہ توثیق مکمل کی گئی۔' });
@@ -3092,9 +3095,9 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
           return;
         }
 
-        // NO SOURCE FOUND IN AI OR LOCAL DB -> ABSOLUTE REFUSAL RULE
-        pipelineTrace.push({ stage: '4. Source Search', status: 'error', detailsUrdu: 'عدمِ ثبوت کا ضابطہ نافذ العمل ہوا۔' });
-        const refusalText = 'اس مسئلے کے بارے میں ہمارے تصدیق شدہ مصادر میں قابلِ اعتماد حوالہ نہیں ملا، اس لیے ہم غیرمصدقہ جواب پیش نہیں کریں گے۔';
+        // 4. NO VERIFIED SOURCE FOUND -> STRICT SHARIAH REFUSAL RULE
+        pipelineTrace.push({ stage: '4. Source Search', status: 'error', detailsUrdu: 'عدمِ ثبوت کا ضابطہ نافذ العمل ہوا (مستند مآخذ میں قابلِ اعتماد حوالہ نہیں ملا)۔' });
+        const refusalText = 'اس مسئلے کے بارے میں ہمارے تصدیق شدہ مصادر اور کتبِ فقہ میں قابلِ اعتماد حوالہ نہیں ملا۔ شرعی معاملات نازک اور مقدس ہیں، اس لیے من گھڑت یا خود ساختہ رائے دینا قطعی حرام ہے۔ سائل کو ہدایت کی جاتی ہے کہ وہ اپنے قریبی مستند دار الافتاء سے بالمشافہ رجوع فرمائیں۔';
 
         const auditItem = {
           id: 'AUD-' + queryId,
@@ -3114,7 +3117,7 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
       }
     }
 
-    function renderRefusalResponse(question, refusalText, trace, auditId) {
+        function renderRefusalResponse(question, refusalText, trace, auditId) {
       const container = document.getElementById('response-container');
       container.innerHTML = '<div class="space-y-6 font-urdu text-right">' +
         '<div class="bg-[#0b1710] border border-emerald-800/40 rounded-2xl p-4 shadow-lg">' +
