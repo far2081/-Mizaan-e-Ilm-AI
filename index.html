@@ -1430,7 +1430,7 @@
       }
 
       // 10. Women's Fiqh: Haydh, Nifas, Istihadah (حیض، نفاس، استحاضہ و قضا نماز و روزہ)
-      if (q.includes('حیض') || q.includes('نفاس') || q.includes('استحاضہ') || q.includes('قضا روزہ') || q.includes('حیض میں نماز') || q.includes('حیض میں قرآن')) {
+      if (q.includes('حیض') || q.includes('نفاس') || q.includes('استحاضہ') || q.includes('قضا روزہ') || q.includes('حیض میں نماز') || q.includes('حیض میں قرآن') || q.includes('حیض میں شوہر') || q.includes('حیض میں ہمبستری') || q.includes('حیض میں جماع') || q.includes('پیریڈز') || q.includes('ماہواری') || q.includes('قربت') || q.includes('شوہر کے نزدیک')) {
         return {
           topicCategoryUrdu: 'خواتین کے فقہی احکام (حیض، نفاس و استحاضہ)',
           shortAnswerUrdu: 'حالتِ حیض و نفاس میں عورت کے لیے نماز اور روزہ دونوں معاف ہیں۔ نمازوں کی قضا بعد میں نہیں، لیکن روزوں کی قضا رکھنا فرض ہے۔ تلاوتِ قرآن میں احناف و شیعہ کے نزدیک ممانعت ہے جبکہ اہل حدیث کے نزدیک بغیر مس کے جائز ہے۔ استحاضہ (بیماری کا خون) میں نہ نماز معاف ہے نہ روزہ، بلکہ ہر نماز کے وقت نیا وضو کر کے ادا کرنا فرض ہے۔',
@@ -2327,7 +2327,7 @@
       };
     }
 
-        function sanitizeUrduText(text) {
+    function sanitizeUrduText(text) {
       if (!text || typeof text !== 'string') return text;
 
       let s = text;
@@ -2340,7 +2340,16 @@
       s = s.replace(/جدید\s*دور\s*کی\s*روشنی\s*میں/gi, 'شرعی اصولوں کی روشنی میں');
       s = s.replace(/اسلامی\s*نقطہ\s*نظر\s*سے/gi, 'شرعی رو سے');
 
-      // 2. Grammatical gender and verb-agreement fixes in Islamic terminology
+      // 2. Strict Women's Fiqh Shariah Guardrails (حیض و نفاس میں نماز و طہارت کے شرعی اصول)
+      if (/(حیض|نفاس|ایامِ\s*مخصوصہ|ماہواری|پیریڈز)/i.test(s)) {
+        s = s.replace(/وضو\s+اور\s+نماز\s+کی\s+ضرورت\s+کے\s+وقت\s+وضو\s+کر\s+کے\s+نماز\s+ادا\s+کریں[۔.]*/g, 'حیض کے دوران نماز قطعی معاف ہے، پاکی اور غسل کے بعد نمازیں شروع کریں۔');
+        s = s.replace(/وضو\s+کر\s+کے\s+نماز\s+ادا\s+کریں[۔.]*/g, 'حیض کے دوران نماز معاف ہے، غسلِ طہارت کے بعد نماز ادا کریں۔');
+        s = s.replace(/نماز\s+پڑھنا\s+لازمی\s+ہے/g, 'حیض میں نماز قطعی معاف ہے');
+        s = s.replace(/نماز\s+ادا\s+کرنی\s+چاہیے/g, 'حیض میں نماز معاف ہے');
+        s = s.replace(/نماز\s+ادا\s+کریں/g, 'پاکی کے بعد نماز ادا کریں');
+      }
+
+      // 3. Grammatical gender and verb-agreement fixes in Islamic terminology
       const exactReplacements = [
         // Wudu (وضو - مذکر)
         [/وضو\s+ٹوٹ\s+جاتی\s+ہے/g, 'وضو ٹوٹ جاتا ہے'],
@@ -2629,7 +2638,7 @@
         'DO NOT mention or mix other schools. Provide the DIRECT RULING (حکمِ شرعی: جائز / ناجائز / فرض / واجب / حرام / مکروہ / باطل) first, followed by clear easy-to-understand guidance for a layperson, specific Quran Ayah and Hadith for THIS specific question, and the exact classical book reference of THIS school.' :
         'CRITICAL: Provide the DIRECT RULING (حکمِ شرعی) first, followed by clear easy-to-understand guidance for a layperson, specific Quran Ayah and Hadith for this question, and distinct authentic rulings for ALL 4 schools of thought (Deobandi, Barelvi, Ahle Hadith, Shia) with exact classical books.';
 
-      const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authentic, source-locked Islamic scholarly research and Fatwa-reference system.\n\n' +
+const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authentic, source-locked Islamic scholarly research and Fatwa-reference system.\n\n' +
         'CRITICAL DIRECTIVES:\n' +
         '1. LANGUAGE & SPELLING (سلیس اور خالص فصیح اردو):\n' +
         '   - Write in crystal-clear, simple, natural, and grammatically flawless Urdu (سلیس اردو) that any common layperson can immediately understand.\n' +
@@ -2640,13 +2649,17 @@
         '   - If the question is outside Islam, speculative, or lacks authentic classical grounding / Darul Ifta consensus, RETURN "isUnanswerable": true and provide a respectful refusal in "refusalUrdu".\n' +
         '   - In "shortAnswerUrdu", state the direct, decisive ruling (مثلاً: یہ ناجائز اور گناہ ہے / وضو ٹوٹ جائے گا / سجدہ سہو واجب ہے / یہ حلال و جائز ہے).\n' +
         '   - In "actionAdviceUrdu", give 2-3 simple, direct sentences explaining plainly what the layperson must actually do in practice.\n\n' +
-        '3. AUTHENTIC FATWA SITES, MUFTIS & CLASSICAL SOURCES:\n' +
+        '3. SPECIAL RIGID AXIOM ON WOMEN ISSUES (خواتین کے مخصوص ایام اور حیض کے قطعی اصول):\n' +
+        '   - دورانِ حیض و نفاس (Menstruation/Periods) عورت سے نماز قطعی حرام اور ساقط ہے (نہ اس وقت پڑھنا ہے، نہ بعد میں قضا ہے)۔ روزہ اس دوران حرام ہے البتہ بعد میں روزوں کی قضا فرض ہے۔\n' +
+        '   - حیض کے دوران شوہر سے جماع (ہمبستری) حرامِ قطعی ہے؛ البتہ ساتھ کھانا پینا، ایک بستر پر سونا، پیار و محبت اور قربت رکھنا بالاتفاق جائز ہے۔\n' +
+        '   - NEVER instruct a menstruating woman to perform Salah or Wudu during periods. State clearly: "حیض کے دوران نماز قطعی معاف ہے، پاکی اور غسل کے بعد نمازیں شروع کی جائیں گی۔"\n\n' +
+        '4. AUTHENTIC FATWA SITES, MUFTIS & CLASSICAL SOURCES:\n' +
         '   - For each school, provide the official Darul Ifta name, verified Fatwa Portal URL, recognized Mufti / Board name, and exact Fatwa / Book reference:\n' +
         '     * Deobandi: دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن (https://www.banuri.edu.pk/fatwa) / دارالعلوم دیوبند (https://darulifta-deoband.com) / مفتی محمد تقی عثمانی / مفتی عبد الرحیم\n' +
         '     * Barelvi: دارالافتاء اہلسنت - دعوتِ اسلامی (https://www.daruliftaahlesunnat.net) / مفتی محمد علی اصغر عطاری مدنی / فتاویٰ رضویہ / بہارِ شریعت\n' +
         '     * Ahle Hadith: دارالافتاء اسلام سوال و جواب (https://islamqa.info/ur) / فضیلۃ الشیخ محمد صالح المنجد / فتاویٰ ثنائیہ\n' +
         '     * Shia: دفتر مرجع عالی قدر آیۃ اللہ العظمیٰ سید علی حسینی سیستانی (https://www.sistani.org/urdu) / توضیح المسائل جامع\n\n' +
-        '4. SCRIPTURAL EVIDENCE:\n' +
+        '5. SCRIPTURAL EVIDENCE:\n' +
         '   - Provide question-specific Quran Ayah with Surah name and authentic Urdu translation.\n' +
         '   - Provide Sahih Hadith directly relevant to the question with Book Name (e.g. صحیح البخاری، صحیح مسلم، سنن ابی داود) and Hadith number.\n\n' +
         selectedSchoolInstruction + '\n\n' +
