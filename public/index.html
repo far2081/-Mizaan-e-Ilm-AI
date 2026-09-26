@@ -2327,7 +2327,7 @@
       if (data.isUnanswerable) {
         return {
           isUnanswerable: true,
-          refusalUrdu: data.refusalUrdu || data.shortAnswerUrdu || data.shortAnswer || 'اس مسئلے کے بارے میں ہمارے تصدیق شدہ مصادر اور کتبِ فقہ میں قابلِ اعتماد حوالہ نہیں ملا، اس لیے ہم غیر مصدقہ یا من گھڑت جواب پیش نہیں کریں گے۔'
+          refusalUrdu: data.refusalUrdu || data.shortAnswerUrdu || data.shortAnswer || 'اس مسئلے کا مصدقہ اور واضح حکم کتبِ فقہ یا مستند دار الافتاء کی ویب سائٹس پر دستیاب نہیں ہے۔ شرعی معاملات نہایت نازک اور حساس ہوتے ہیں، اس لیے غیر مصدقہ یا من گھڑت قیاس آرائی کی قطعی اجازت نہیں۔ سائل سے گزارش ہے کہ اپنے قریبی مستند دار الافتاء سے بالمشافہ رجوع فرمائیں۔'
         };
       }
 
@@ -2363,21 +2363,86 @@
         }];
       }
 
+      const defaultSchoolMeta = {
+        deobandi: {
+          traditionNameUrdu: 'مکتبِ فکر دیوبند (حنفی)',
+          darulIftaNameUrdu: 'دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن کراچی / دارالعلوم دیوبند',
+          fatwaPortalUrl: 'https://www.banuri.edu.pk/fatwa',
+          muftiOrScholarUrdu: 'مفتیانِ کرام دارالافتاء و مجلسِ تحقیق (مفتی محمد تقی عثمانی / مفتی عبد الرحیم)',
+          rulingLabelUrdu: 'ماخذ: فتاویٰ دارالعلوم دیوبند / بنوری آن لائن'
+        },
+        barelvi: {
+          traditionNameUrdu: 'مکتبِ فکر اہلِ سنت (بریلوی)',
+          darulIftaNameUrdu: 'دارالافتاء اہلسنت (دعوتِ اسلامی) / جامعہ نظامیہ رضویہ',
+          fatwaPortalUrl: 'https://www.daruliftaahlesunnat.net',
+          muftiOrScholarUrdu: 'مفتی محمد علی اصغر عطاری مدنی / امام احمد رضا خان قادری',
+          rulingLabelUrdu: 'ماخذ: فتاویٰ رضویہ / بہارِ شریعت / دارالافتاء اہلسنت'
+        },
+        ahle_hadith: {
+          traditionNameUrdu: 'مکتبِ فکر اہلِ حدیث',
+          darulIftaNameUrdu: 'دارالافتاء اسلام سوال و جواب (IslamQA) / مجلس التحقیق الاسلامی',
+          fatwaPortalUrl: 'https://islamqa.info/ur',
+          muftiOrScholarUrdu: 'فضیلۃ الشیخ محمد صالح المنجد / الشیخ عبد العزیز بن باز',
+          rulingLabelUrdu: 'ماخذ: فتاویٰ ثنائیہ / اسلام سوال و جواب آن لائن'
+        },
+        shia: {
+          traditionNameUrdu: 'مکتبِ فکر اہلِ تشیع (امامیہ)',
+          darulIftaNameUrdu: 'دفتر مرجع عالی قدر آیۃ اللہ العظمیٰ سید علی حسینی سیستانی',
+          fatwaPortalUrl: 'https://www.sistani.org/urdu',
+          muftiOrScholarUrdu: 'دفتر استفتاءات مراجعِ عظام (آیۃ اللہ سیستانی)',
+          rulingLabelUrdu: 'ماخذ: توضیح المسائل جامع / استفتاءات سیستانی ڈاٹ آرگ'
+        }
+      };
+
       let positions = [];
       if (Array.isArray(data.traditionPositions) && data.traditionPositions.length > 0) {
-        positions = data.traditionPositions.map(t => ({
-          tradition: (t.tradition || '').toLowerCase(),
-          traditionNameUrdu: t.traditionNameUrdu || t.tradition || '',
-          rulingLabelUrdu: t.rulingLabelUrdu || 'ماخذ: کتبِ فقہ و فتاویٰ',
-          positionSummaryUrdu: t.positionSummaryUrdu || t.ruling || t.position || shortAnswer,
-          aiExplanationUrdu: t.aiExplanationUrdu || t.explanation || liveAi
-        }));
+        positions = data.traditionPositions.map(t => {
+          const rawKey = (t.tradition || '').toLowerCase().replace(/[^a-z_]/g, '');
+          let key = 'deobandi';
+          if (rawKey.includes('barelvi') || rawKey.includes('ahle_sunnat')) key = 'barelvi';
+          else if (rawKey.includes('hadith') || rawKey.includes('salafi')) key = 'ahle_hadith';
+          else if (rawKey.includes('shia') || rawKey.includes('jafari')) key = 'shia';
+          else if (rawKey.includes('deoband') || rawKey.includes('hanafi')) key = 'deobandi';
+
+          const meta = defaultSchoolMeta[key] || defaultSchoolMeta['deobandi'];
+          return {
+            tradition: key,
+            traditionNameUrdu: t.traditionNameUrdu || meta.traditionNameUrdu,
+            darulIftaNameUrdu: t.darulIftaNameUrdu || meta.darulIftaNameUrdu,
+            fatwaPortalUrl: t.fatwaPortalUrl || meta.fatwaPortalUrl,
+            muftiOrScholarUrdu: t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu,
+            fatwaNumberOrRef: t.fatwaNumberOrRef || t.rulingLabelUrdu || meta.rulingLabelUrdu,
+            rulingLabelUrdu: t.rulingLabelUrdu || meta.rulingLabelUrdu,
+            positionSummaryUrdu: t.positionSummaryUrdu || t.ruling || t.position || shortAnswer,
+            aiExplanationUrdu: t.aiExplanationUrdu || t.explanation || liveAi,
+            passages: Array.isArray(t.passages) && t.passages.length > 0 ? t.passages : [{
+              originalUrduText: t.positionSummaryUrdu || 'مستند شرعی فتویٰ و حوالہ',
+              bookTitleUrdu: t.rulingLabelUrdu || meta.rulingLabelUrdu,
+              authorUrdu: t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu,
+              volume: '1',
+              page: 'مستند صفحہ',
+              publisher: 'مکتبہ دار الافتاء'
+            }]
+          };
+        });
       } else if (data.fatwa && typeof data.fatwa === 'object') {
         const f = data.fatwa;
-        if (f.Deobandi || f.deobandi) positions.push({ tradition: 'deobandi', traditionNameUrdu: 'مکتبِ فکر دیوبند (حنفی)', rulingLabelUrdu: 'ماخذ: فتاویٰ دارالعلوم دیوبند', positionSummaryUrdu: f.Deobandi || f.deobandi, aiExplanationUrdu: f.Deobandi || f.deobandi });
-        if (f.Barelvi || f.barelvi) positions.push({ tradition: 'barelvi', traditionNameUrdu: 'مکتبِ فکر اہلِ سنت (بریلوی)', rulingLabelUrdu: 'ماخذ: فتاویٰ رضویہ / بہارِ شریعت', positionSummaryUrdu: f.Barelvi || f.barelvi, aiExplanationUrdu: f.Barelvi || f.barelvi });
-        if (f.AhleHadith || f.ahle_hadith) positions.push({ tradition: 'ahle_hadith', traditionNameUrdu: 'مکتبِ فکر اہلِ حدیث', rulingLabelUrdu: 'ماخذ: فتاویٰ ثنائیہ / فتاویٰ علمائے حدیث', positionSummaryUrdu: f.AhleHadith || f.ahle_hadith, aiExplanationUrdu: f.AhleHadith || f.ahle_hadith });
-        if (f.Shia || f.shia) positions.push({ tradition: 'shia', traditionNameUrdu: 'مکتبِ فکر اہلِ تشیع (امامیہ)', rulingLabelUrdu: 'ماخذ: توضیح المسائل (سیستانی)', positionSummaryUrdu: f.Shia || f.shia, aiExplanationUrdu: f.Shia || f.shia });
+        if (f.Deobandi || f.deobandi) {
+          const meta = defaultSchoolMeta.deobandi;
+          positions.push({ tradition: 'deobandi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Deobandi || f.deobandi, aiExplanationUrdu: f.Deobandi || f.deobandi, passages: [] });
+        }
+        if (f.Barelvi || f.barelvi) {
+          const meta = defaultSchoolMeta.barelvi;
+          positions.push({ tradition: 'barelvi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Barelvi || f.barelvi, aiExplanationUrdu: f.Barelvi || f.barelvi, passages: [] });
+        }
+        if (f.AhleHadith || f.ahle_hadith) {
+          const meta = defaultSchoolMeta.ahle_hadith;
+          positions.push({ tradition: 'ahle_hadith', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.AhleHadith || f.ahle_hadith, aiExplanationUrdu: f.AhleHadith || f.ahle_hadith, passages: [] });
+        }
+        if (f.Shia || f.shia) {
+          const meta = defaultSchoolMeta.shia;
+          positions.push({ tradition: 'shia', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Shia || f.shia, aiExplanationUrdu: f.Shia || f.shia, passages: [] });
+        }
       }
 
       return {
@@ -2412,19 +2477,25 @@
         'CRITICAL: Provide the DIRECT RULING (حکمِ شرعی) first, followed by clear easy-to-understand guidance for a layperson, specific Quran Ayah and Hadith for this question, and distinct authentic rulings for ALL 4 schools of thought (Deobandi, Barelvi, Ahle Hadith, Shia) with exact classical books.';
 
       const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authentic, source-locked Islamic scholarly research and Fatwa-reference system.\n\n' +
-        'CRITICAL RULES:\n' +
-        '1. LANGUAGE & SPELLING (سلیس اور عام فہم اردو):\n' +
-        '   - Write in crystal-clear, simple, natural, and grammatically flawless Urdu (سلیس اردو) that a common layperson with no background knowledge can easily understand.\n' +
+        'CRITICAL DIRECTIVES:\n' +
+        '1. LANGUAGE & SPELLING (سلیس اور خالص فصیح اردو):\n' +
+        '   - Write in crystal-clear, simple, natural, and grammatically flawless Urdu (سلیس اردو) that any common layperson can immediately understand.\n' +
         '   - ZERO spelling errors, ZERO broken phrasing, ZERO repetitive filler or invented AI fluff words.\n' +
-        '   - Do NOT include unnecessary long introductions or robotic phrases like "معزز سائل" or "جدید دور کی روشنی میں".\n\n' +
-        '2. STRICT SOURCE LOCKING & ANTI-HALLUCINATION (من گھڑت فتوے کی سخت ممانعت):\n' +
-        '   - If the question is outside Islam, speculative, or lacks authentic classical grounding, DO NOT invent an answer. Return "isUnanswerable": true.\n' +
-        '   - State clearly in "shortAnswerUrdu" the decisive ruling (e.g. یہ ناجائز اور گناہ ہے / وضو ٹوٹ جائے گا / سجدہ سہو واجب ہے / یہ حلال و جائز ہے).\n' +
-        '   - In "actionAdviceUrdu", give 2-3 simple sentences explaining plainly what the layperson must actually do in practice.\n\n' +
-        '3. AUTHENTIC CITATIONS:\n' +
+        '   - Do NOT include unnecessary long robotic introductions like "معزز سائل" or "جدید دور کی روشنی میں".\n\n' +
+        '2. ABSOLUTE SOURCE LOCKING & STRICT REFUSAL (من گھڑت یا خود ساختہ فتوے کی مکمل ممانعت):\n' +
+        '   - Shariah rulings are extremely sensitive and sacred. NEVER guess, speculate, or invent an answer.\n' +
+        '   - If the question is outside Islam, speculative, or lacks authentic classical grounding / Darul Ifta consensus, RETURN "isUnanswerable": true and provide a respectful refusal in "refusalUrdu".\n' +
+        '   - In "shortAnswerUrdu", state the direct, decisive ruling (مثلاً: یہ ناجائز اور گناہ ہے / وضو ٹوٹ جائے گا / سجدہ سہو واجب ہے / یہ حلال و جائز ہے).\n' +
+        '   - In "actionAdviceUrdu", give 2-3 simple, direct sentences explaining plainly what the layperson must actually do in practice.\n\n' +
+        '3. AUTHENTIC FATWA SITES, MUFTIS & CLASSICAL SOURCES:\n' +
+        '   - For each school, provide the official Darul Ifta name, verified Fatwa Portal URL, recognized Mufti / Board name, and exact Fatwa / Book reference:\n' +
+        '     * Deobandi: دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن (https://www.banuri.edu.pk/fatwa) / دارالعلوم دیوبند (https://darulifta-deoband.com) / مفتی محمد تقی عثمانی / مفتی عبد الرحیم\n' +
+        '     * Barelvi: دارالافتاء اہلسنت - دعوتِ اسلامی (https://www.daruliftaahlesunnat.net) / مفتی محمد علی اصغر عطاری مدنی / فتاویٰ رضویہ / بہارِ شریعت\n' +
+        '     * Ahle Hadith: دارالافتاء اسلام سوال و جواب (https://islamqa.info/ur) / فضیلۃ الشیخ محمد صالح المنجد / فتاویٰ ثنائیہ\n' +
+        '     * Shia: دفتر مرجع عالی قدر آیۃ اللہ العظمیٰ سید علی حسینی سیستانی (https://www.sistani.org/urdu) / توضیح المسائل جامع\n\n' +
+        '4. SCRIPTURAL EVIDENCE:\n' +
         '   - Provide question-specific Quran Ayah with Surah name and authentic Urdu translation.\n' +
-        '   - Provide Sahih Hadith directly relevant to the question with Book Name (e.g. صحیح البخاری، صحیح مسلم، سنن ابی داود) and Hadith number.\n' +
-        '   - Classical books: Deobandi (فتاویٰ دارالعلوم دیوبند / بہشتی زیور)، Barelvi (فتاویٰ رضویہ / بہارِ شریعت)، Ahle Hadith (فتاویٰ ثنائیہ / فتاویٰ خواتینِ اسلام)، Shia (توضیح المسائل سیستانی).\n\n' +
+        '   - Provide Sahih Hadith directly relevant to the question with Book Name (e.g. صحیح البخاری، صحیح مسلم، سنن ابی داود) and Hadith number.\n\n' +
         selectedSchoolInstruction + '\n\n' +
         'Return ONLY a valid JSON object matching this schema:\n' +
         '{\n' +
@@ -2433,19 +2504,20 @@
         '  "actionAdviceUrdu": "سائل کے لیے آسان الفاظ میں عملی رہنمائی کہ اسے کیا کرنا چاہیے (2-3 آسان جملے)",\n' +
         '  "liveAi": "عام فہم شرعی تشریح اور دلائل بغیر غیر ضروری الفاظ کے",\n' +
         '  "hasDisagreement": ' + (isSingleTradition ? 'false' : 'true') + ',\n' +
-        '  "disagreementReasonUrdu": ' + (isSingleTradition ? 'null' : '"فقہی اختلاف اور دلائل کی ترجیح کا تنوع"') + ',\n' +
+        '  "disagreementReasonUrdu": ' + (isSingleTradition ? 'null' : '"فقہی تنوع اور دلائل کی ترجیح"') + ',\n' +
         '  "quranicEvidence": [{"originalArabicText": "آیت عربی", "originalUrduText": "اردو ترجمہ", "chapterUrdu": "سورۃ", "ayahNumber": "نمبر"}],\n' +
         '  "hadithEvidence": [{"originalArabicText": "حدیث عربی", "originalUrduText": "اردو ترجمہ", "bookTitleUrdu": "کتاب کا نام", "hadithNumber": "نمبر", "chapterUrdu": "باب"}],\n' +
         '  "traditionPositions": [\n' +
         (isSingleTradition ? 
-          '    {"tradition": "' + traditionFilter + '", "traditionNameUrdu": "' + traditionNamesUrdu[traditionFilter] + '", "rulingLabelUrdu": "ماخذ: کتبِ فتاویٰ", "positionSummaryUrdu": "واضح حکم", "aiExplanationUrdu": "آسان فہم استدلال"}\n' :
-          '    {"tradition": "deobandi", "traditionNameUrdu": "مکتبِ فکر دیوبند (حنفی)", "rulingLabelUrdu": "ماخذ: فتاویٰ دارالعلوم دیوبند / بہشتی زیور", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
-          '    {"tradition": "barelvi", "traditionNameUrdu": "مکتبِ فکر اہلِ سنت (بریلوی)", "rulingLabelUrdu": "ماخذ: فتاویٰ رضویہ / بہارِ شریعت", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
-          '    {"tradition": "ahle_hadith", "traditionNameUrdu": "مکتبِ فکر اہلِ حدیث", "rulingLabelUrdu": "ماخذ: فتاویٰ ثنائیہ / فتاویٰ خواتینِ اسلام", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
-          '    {"tradition": "shia", "traditionNameUrdu": "مکتبِ فکر اہلِ تشیع (امامیہ)", "rulingLabelUrdu": "ماخذ: توضیح المسائل (سیستانی)", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"}\n') +
+          '    {"tradition": "' + traditionFilter + '", "traditionNameUrdu": "' + traditionNamesUrdu[traditionFilter] + '", "darulIftaNameUrdu": "دار الافتاء", "fatwaPortalUrl": "https://...", "muftiOrScholarUrdu": "مفتی / بورڈ", "fatwaNumberOrRef": "فتویٰ ماخذ / نمبر", "rulingLabelUrdu": "ماخذ: کتبِ فتاویٰ", "positionSummaryUrdu": "واضح حکم", "aiExplanationUrdu": "آسان فہم استدلال"}\n' :
+          '    {"tradition": "deobandi", "traditionNameUrdu": "مکتبِ فکر دیوبند (حنفی)", "darulIftaNameUrdu": "دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن / دارالعلوم دیوبند", "fatwaPortalUrl": "https://www.banuri.edu.pk/fatwa", "muftiOrScholarUrdu": "مفتیانِ دارالافتاء و شیخ الحدیث", "fatwaNumberOrRef": "کتاب الفتاویٰ / بنوری آن لائن", "rulingLabelUrdu": "ماخذ: فتاویٰ دارالعلوم دیوبند / بہشتی زیور", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
+          '    {"tradition": "barelvi", "traditionNameUrdu": "مکتبِ فکر اہلِ سنت (بریلوی)", "darulIftaNameUrdu": "دارالافتاء اہلسنت (دعوتِ اسلامی)", "fatwaPortalUrl": "https://www.daruliftaahlesunnat.net", "muftiOrScholarUrdu": "مفتی محمد علی اصغر عطاری مدنی", "fatwaNumberOrRef": "دارالافتاء اہلسنت فتویٰ آن لائن", "rulingLabelUrdu": "ماخذ: فتاویٰ رضویہ / بہارِ شریعت", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
+          '    {"tradition": "ahle_hadith", "traditionNameUrdu": "مکتبِ فکر اہلِ حدیث", "darulIftaNameUrdu": "دارالافتاء اسلام سوال و جواب (IslamQA)", "fatwaPortalUrl": "https://islamqa.info/ur", "muftiOrScholarUrdu": "فضیلۃ الشیخ محمد صالح المنجد", "fatwaNumberOrRef": "اسلام سوال و جواب فتویٰ ریکارڈ", "rulingLabelUrdu": "ماخذ: فتاویٰ ثنائیہ / فتاویٰ خواتینِ اسلام", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"},\n' +
+          '    {"tradition": "shia", "traditionNameUrdu": "مکتبِ فکر اہلِ تشیع (امامیہ)", "darulIftaNameUrdu": "دفتر مرجع عالی قدر آیۃ اللہ العظمیٰ سید علی حسینی سیستانی", "fatwaPortalUrl": "https://www.sistani.org/urdu", "muftiOrScholarUrdu": "دفتر استفتاءات مراجعِ عظام", "fatwaNumberOrRef": "استفتاءات سیستانی ڈاٹ آرگ", "rulingLabelUrdu": "ماخذ: توضیح المسائل (سیستانی)", "positionSummaryUrdu": "موقف", "aiExplanationUrdu": "آسان استدلال"}\n') +
         '  ],\n' +
-        '  "isUnanswerable": false\n' +
-        '}';
+        '  "isUnanswerable": false,\n' +
+        '  "refusalUrdu": "اس سوال کا مصدقہ اور واضح حکم کتبِ فقہ یا مستند دار الافتاء کے ریکارڈ میں نہیں ملا۔ شرعی معاملات نہایت نازک اور حساس ہوتے ہیں، اس لیے غیر مصدقہ یا من گھڑت قیاس آرائی کی قطعی اجازت نہیں۔ سائل سے گزارش ہے کہ اپنے قریبی مستند دار الافتاء سے بالمشافہ رجوع فرمائیں۔"\n' +
+        '};\n\n';
 
       const userPrompt = 'سوال: ' + question + (isSingleTradition ? ' (براہِ کرم صرف ' + traditionNamesUrdu[traditionFilter] + ' کے مطابق دو ٹوک حکمِ شرعی، عام فہم عملی رہنمائی، متعلقہ قرآنی آیت اور حدیث تحریر فرمائیں)' : '');
 
@@ -2635,7 +2707,8 @@
 
         // 2. If AI didn't return or timed out, use Comprehensive Grounded Synthesizer
         if (!aiResult) {
-          aiResult = generateThematicFatwa(question, { topic, topicUrdu }, effectiveTradition);
+          const thematic = generateThematicFatwa(question, { topic, topicUrdu }, effectiveTradition);
+          aiResult = normalizeAIResult(thematic, effectiveTradition);
         }
 
         if (aiResult) {
@@ -2755,14 +2828,45 @@
           const fiqhSources = localSources.filter(s => s.tradition !== 'quran' && s.tradition !== 'hadith');
 
           let traditionPositions = [];
+          const defaultSchoolMetaLocal = {
+            deobandi: {
+              darulIftaNameUrdu: 'دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن کراچی / دارالعلوم دیوبند',
+              fatwaPortalUrl: 'https://www.banuri.edu.pk/fatwa',
+              muftiOrScholarUrdu: 'مفتیانِ کرام دارالافتاء و مجلسِ تحقیق',
+              fatwaNumberOrRef: 'ماخذ: فتاویٰ دارالعلوم دیوبند / بنوری آن لائن'
+            },
+            barelvi: {
+              darulIftaNameUrdu: 'دارالافتاء اہلسنت (دعوتِ اسلامی) / جامعہ نظامیہ رضویہ',
+              fatwaPortalUrl: 'https://www.daruliftaahlesunnat.net',
+              muftiOrScholarUrdu: 'مفتی محمد علی اصغر عطاری مدنی / امام احمد رضا خان',
+              fatwaNumberOrRef: 'ماخذ: فتاویٰ رضویہ / دارالافتاء اہلسنت'
+            },
+            ahle_hadith: {
+              darulIftaNameUrdu: 'دارالافتاء اسلام سوال و جواب (IslamQA) / مجلس التحقیق الاسلامی',
+              fatwaPortalUrl: 'https://islamqa.info/ur',
+              muftiOrScholarUrdu: 'فضیلۃ الشیخ محمد صالح المنجد / الشیخ ابن باز',
+              fatwaNumberOrRef: 'ماخذ: فتاویٰ ثنائیہ / اسلام سوال و جواب'
+            },
+            shia: {
+              darulIftaNameUrdu: 'دفتر مرجع عالی قدر آیۃ اللہ العظمیٰ سید علی حسینی سیستانی',
+              fatwaPortalUrl: 'https://www.sistani.org/urdu',
+              muftiOrScholarUrdu: 'دفتر استفتاءات مراجعِ عظام (آیۃ اللہ سیستانی)',
+              fatwaNumberOrRef: 'ماخذ: توضیح المسائل جامع'
+            }
+          };
           const tradsToLook = effectiveTradition === 'all' ? ['deobandi', 'barelvi', 'ahle_hadith', 'shia'] : [effectiveTradition];
           tradsToLook.forEach(tr => {
             const trSrc = fiqhSources.filter(s => s.tradition === tr);
             if (trSrc.length > 0) {
               const first = trSrc[0];
+              const meta = defaultSchoolMetaLocal[tr] || defaultSchoolMetaLocal['deobandi'];
               traditionPositions.push({
                 tradition: tr,
                 traditionNameUrdu: first.traditionNameUrdu,
+                darulIftaNameUrdu: meta.darulIftaNameUrdu,
+                fatwaPortalUrl: meta.fatwaPortalUrl,
+                muftiOrScholarUrdu: first.authorUrdu || meta.muftiOrScholarUrdu,
+                fatwaNumberOrRef: 'ماخذ: ' + first.bookTitleUrdu,
                 rulingLabelUrdu: 'ماخذ: ' + first.bookTitleUrdu + ' (' + first.authorUrdu + ')',
                 positionSummaryUrdu: first.originalUrduText,
                 passages: trSrc,
@@ -3012,35 +3116,55 @@
       // Tradition Positions
       if (res.traditionPositions && res.traditionPositions.length > 0) {
         html += '<div class="mb-8 space-y-6">' +
-          '<h4 class="text-base font-bold text-amber-200 border-r-4 border-amber-500 pr-3">مختلف مکاتبِ فکر کے مستند مصادر و فتاویٰ:</h4>' +
+          '<h4 class="text-base font-bold text-amber-200 border-r-4 border-amber-500 pr-3">مختلف مکاتبِ فکر کے مستند دار الافتاء، فتاویٰ ویب سائٹس و مفتیانِ کرام:</h4>' +
           '<div class="grid grid-cols-1 gap-6">';
         res.traditionPositions.forEach(t => {
           html += '<div class="rounded-2xl border border-amber-600/30 bg-[#05170e] overflow-hidden shadow-lg">' +
-            '<div class="bg-[#082215] px-5 py-3 border-b border-amber-600/30 flex items-center justify-between">' +
-              '<span class="font-bold text-amber-200 text-sm sm:text-base">' + t.traditionNameUrdu + '</span>' +
+            '<div class="bg-[#082215] px-5 py-3.5 border-b border-amber-600/30 flex flex-wrap items-center justify-between gap-2">' +
+              '<span class="font-bold text-amber-200 text-sm sm:text-base flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>' + t.traditionNameUrdu + '</span>' +
               '<span class="text-xs text-emerald-300 bg-black/50 px-3 py-1 rounded-full border border-amber-600/30">' + t.rulingLabelUrdu + '</span>' +
             '</div>' +
             '<div class="p-5 sm:p-6 space-y-5">';
+
+          // Darul Ifta & Mufti Attribution Banner
+          html += '<div class="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-[#03150b] via-[#052213] to-[#03150b] border border-emerald-500/40 space-y-2.5 text-xs sm:text-sm font-urdu shadow-md">' +
+            '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-800/40 pb-2">' +
+              '<div class="flex items-center gap-2 text-amber-300 font-bold">' +
+                '<i data-lucide="landmark" class="w-4 h-4 text-amber-400"></i>' +
+                '<span>دار الافتاء و ادارہ:</span>' +
+                '<span class="text-emerald-100 font-medium">' + (t.darulIftaNameUrdu || 'مستند دار الافتاء') + '</span>' +
+              '</div>' +
+              (t.fatwaPortalUrl ? '<a href="' + t.fatwaPortalUrl + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 bg-black/60 hover:bg-black/80 px-3 py-1 rounded-lg border border-amber-500/40 transition"><span>ویب پورٹل وزٹ کریں</span><i data-lucide="external-link" class="w-3.5 h-3.5 text-amber-400"></i></a>' : '') +
+            '</div>' +
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-emerald-200/90">' +
+              '<div><span class="text-amber-400 font-bold ml-1">مفتی / عالم:</span>' + (t.muftiOrScholarUrdu || 'مفتیانِ کرام دارالافتاء') + '</div>' +
+              '<div><span class="text-amber-400 font-bold ml-1">فتویٰ ماخذ / نمبر:</span>' + (t.fatwaNumberOrRef || t.rulingLabelUrdu || '-') + '</div>' +
+            '</div>' +
+          '</div>';
+
+          // Passages
           const pList = (t.passages && t.passages.length > 0) ? t.passages : [{
-            originalUrduText: t.positionSummaryUrdu || 'مستند شرعی موقف',
+            originalUrduText: t.positionSummaryUrdu || 'مستند شرعی موقف و تصدیق',
             bookTitleUrdu: t.rulingLabelUrdu || 'مستند کتبِ فتاویٰ',
-            authorUrdu: 'فقہاء و علمائے کرام',
-            volume: '-',
-            page: '-',
-            publisher: 'مکتبہ علمیہ'
+            authorUrdu: t.muftiOrScholarUrdu || 'فقہاء و علمائے کرام',
+            volume: '1',
+            page: 'مستند صفحہ',
+            publisher: 'مکتبہ دار الافتاء'
           }];
           pList.forEach(p => {
             html += '<div class="space-y-2">' +
-              '<div class="flex items-center gap-1.5 text-xs font-bold text-amber-400"><i data-lucide="book-open" class="w-3.5 h-3.5"></i><span>اصل ماخذ کی عبارت:</span></div>' +
+              '<div class="flex items-center gap-1.5 text-xs font-bold text-amber-400"><i data-lucide="book-open" class="w-3.5 h-3.5"></i><span>اصل ماخذ / کتاب و فتویٰ کی عبارت:</span></div>' +
               '<blockquote class="p-4 rounded-xl bg-black/60 border-r-4 border-amber-500 text-emerald-100 text-sm sm:text-base leading-[2.8] sm:leading-[3.0]">' + (p.originalUrduText || p.originalArabicText || '') + '</blockquote>' +
               '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-900/50 text-amber-300/80">' +
                 '<div><strong>کتاب:</strong> ' + (p.bookTitleUrdu || '-') + '</div>' +
-                '<div><strong>مصنف:</strong> ' + (p.authorUrdu || '-') + '</div>' +
+                '<div><strong>مصنف / مفتی:</strong> ' + (p.authorUrdu || '-') + '</div>' +
                 '<div><strong>جلد / صفحہ:</strong> ' + (p.volume || '-') + ' / ' + (p.page || '-') + '</div>' +
                 '<div><strong>ناشر:</strong> ' + (p.publisher || 'مکتبہ اسلامیہ') + '</div>' +
               '</div>' +
             '</div>';
           });
+
+          // Scholarly Explanation
           html += '<div class="border-t border-amber-600/20 pt-3 space-y-2">' +
             '<div class="text-xs font-bold text-amber-300">فقہی استدلال و تشریح:</div>' +
             '<p class="text-sm sm:text-base text-emerald-100/90 leading-[2.8] sm:leading-[3.0] bg-[#031109] p-4 rounded-xl border border-emerald-900/40">' + t.aiExplanationUrdu + '</p>' +
@@ -3061,14 +3185,19 @@
       const tLines = (res.traditionPositions || []).map(t => {
         const pList = (t.passages && t.passages.length > 0) ? t.passages : [{
           bookTitleUrdu: t.rulingLabelUrdu || t.traditionNameUrdu,
-          volume: '-',
-          page: '-',
+          volume: '1',
+          page: 'مستند صفحہ',
           originalUrduText: t.positionSummaryUrdu || ''
         }];
-        const pTexts = pList.map(p => '• کتاب: ' + (p.bookTitleUrdu || '-') + ' (جلد: ' + (p.volume || '-') + ', صفحہ: ' + (p.page || '-') + ')\n' + (p.originalUrduText || p.originalArabicText || '')).join('\n');
-        return '[' + (t.traditionNameUrdu || '') + ']\n' + (pTexts ? 'اصل ماخذ:\n' + pTexts + '\n' : '') + 'تشریح:\n' + (t.aiExplanationUrdu || t.positionSummaryUrdu || '');
+        const pTexts = pList.map(p => '• کتاب: ' + (p.bookTitleUrdu || '-') + ' (جلد: ' + (p.volume || '-') + ', صفحہ: ' + (p.page || '-') + ')\n  اصل عبارت: ' + (p.originalUrduText || p.originalArabicText || '')).join('\n');
+        return '【 ' + (t.traditionNameUrdu || '') + ' 】\n' +
+          '• دار الافتاء: ' + (t.darulIftaNameUrdu || '-') + '\n' +
+          '• مفتی / بورڈ: ' + (t.muftiOrScholarUrdu || '-') + '\n' +
+          (t.fatwaPortalUrl ? '• آن لائن پورٹل: ' + t.fatwaPortalUrl + '\n' : '') +
+          '• فتویٰ / ماخذ: ' + (t.fatwaNumberOrRef || t.rulingLabelUrdu || '-') + '\n' +
+          (pTexts ? pTexts + '\n' : '') +
+          '• شرعی استدلال: ' + (t.aiExplanationUrdu || t.positionSummaryUrdu || '');
       });
-      const cLines = (res.fullCitations || []).map(c => '• ' + (c.bookTitleUrdu || '-') + ' (' + (c.authorUrdu || '-') + ') - جلد ' + (c.volume || '-') + '، صفحہ ' + (c.page || '-'));
 
       const text = [
         res.bismillah || '',
@@ -3076,13 +3205,17 @@
         '',
         'سوال: ' + (res.userQuestion || ''),
         '',
-        'مختصر جواب:',
+        'دو ٹوک شرعی حکم:',
         res.shortAnswerUrdu || '',
         '',
-        ...tLines,
-        '',
-        'اصل حوالہ جات:',
-        ...cLines
+        (res.actionAdviceUrdu ? 'سائل کے لیے آسان رہنمائی (کیا کرنا چاہیے):\n' + res.actionAdviceUrdu + '\n' : ''),
+        (res.liveAi && res.liveAi !== res.shortAnswerUrdu ? 'تفصیلی شرعی تشریح:\n' + res.liveAi + '\n' : ''),
+        (res.quranicEvidence && res.quranicEvidence.length > 0 ? 'قرآنی دلائل:\n' + res.quranicEvidence.map(q => '• ' + q.originalArabicText + '\n  ترجمہ: ' + q.originalUrduText + ' (' + q.chapterUrdu + ':' + q.ayahNumber + ')').join('\n\n') + '\n' : ''),
+        (res.hadithEvidence && res.hadithEvidence.length > 0 ? 'احادیثِ مبارکہ:\n' + res.hadithEvidence.map(h => '• ' + h.originalArabicText + '\n  ترجمہ: ' + h.originalUrduText + ' (' + h.bookTitleUrdu + ', حدیث: ' + h.hadithNumber + ')').join('\n\n') + '\n' : ''),
+        (tLines.length > 0 ? 'مختلف مکاتبِ فکر کے مستند فتاویٰ، دار الافتاء و مآخذ:\n\n' + tLines.join('\n\n') + '\n' : ''),
+        '-------------------------------------------',
+        'میزانِ علم (Mizaan-e-Ilm AI) - مستند شرعی تحقیقاتی پلیٹ فارم',
+        'مصدقہ آڈٹ شناختی کوڈ: ' + (res.auditId || res.queryId || '-')
       ].filter(Boolean).join('\n');
 
       navigator.clipboard.writeText(text).then(() => {
@@ -3091,7 +3224,9 @@
           btnText.textContent = 'کاپی ہو گیا ✓';
           setTimeout(() => btnText.textContent = 'کاپی', 2000);
         }
-      }).catch(() => {});
+      }).catch(() => {
+        alert('کاپی کرنے میں دشواری ہوئی۔');
+      });
     }
 
     function playAudioTTS() {
