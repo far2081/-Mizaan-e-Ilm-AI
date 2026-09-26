@@ -74,44 +74,49 @@
     
     .font-urdu {
       font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', serif;
-      line-height: 2.8;
+      line-height: 3.2 !important;
       word-break: normal;
       overflow-wrap: break-word;
+      letter-spacing: 0.015em;
     }
     .font-urdu p {
-      line-height: 2.85 !important;
-      margin-bottom: 0.9rem;
+      line-height: 3.25 !important;
+      margin-bottom: 1.25rem !important;
     }
     .font-urdu blockquote {
-      line-height: 2.8 !important;
+      line-height: 3.2 !important;
+      padding: 1.25rem 1.5rem !important;
+      margin: 0.75rem 0 !important;
     }
     .font-urdu input {
       line-height: normal !important;
-      font-size: 16px; /* Prevents auto-zoom on iOS */
+      font-size: 16px;
     }
     .font-urdu textarea {
-      line-height: 2.5 !important;
+      line-height: 2.8 !important;
       font-size: 15px;
     }
     .font-arabic {
       font-family: 'Amiri', 'Scheherazade New', serif;
-      line-height: 2.5;
+      line-height: 3.0 !important;
+      letter-spacing: 0.02em;
     }
     
-    /* Mobile-specific fine-tuning for touch screens */
+    /* Mobile-specific fine-tuning */
     @media (max-width: 640px) {
       .font-urdu {
-        line-height: 2.65;
+        line-height: 3.0 !important;
       }
       .font-urdu p {
-        line-height: 2.7 !important;
-        margin-bottom: 0.75rem;
+        line-height: 3.05 !important;
+        margin-bottom: 1rem !important;
       }
       .font-urdu blockquote {
-        line-height: 2.65 !important;
+        line-height: 3.0 !important;
+        padding: 1rem !important;
       }
       .font-arabic {
-        line-height: 2.3;
+        line-height: 2.7 !important;
       }
     }
 
@@ -204,20 +209,20 @@
     <!-- Main Nav -->
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3">
       <!-- Logo & Title -->
-      <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer shrink-0" onclick="switchTab('research')">
-        <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-amber-500/50 shadow-md shadow-black/80 bg-black flex-shrink-0">
-          <img src="logo.jpg" onerror="this.src='https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/www/public/favicon.ico'" alt="NEXORA AI Logo" class="w-full h-full object-cover" />
+      <div class="flex items-center gap-3 sm:gap-4 cursor-pointer shrink-0 py-1.5" onclick="switchTab('research')">
+        <div class="relative w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-lg shadow-black/80 bg-black flex-shrink-0">
+          <img src="logo.jpg" onerror="this.src='https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/www/public/favicon.ico'" alt="Mizaan-e-Ilm AI Logo" class="w-full h-full object-cover" />
         </div>
-        <div class="flex flex-col justify-center">
-          <div class="flex items-center gap-1.5 sm:gap-2">
-            <h1 class="text-lg sm:text-2xl font-bold text-amber-200 font-urdu leading-tight">
+        <div class="flex flex-col justify-center gap-1.5 sm:gap-2">
+          <div class="flex items-center gap-2 sm:gap-2.5">
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-amber-200 font-urdu leading-[1.8] sm:leading-[1.9] pb-0.5">
               میزانِ علم
             </h1>
-            <span class="text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-amber-600/40 text-amber-300 font-sans">
+            <span class="text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950 border border-amber-500/50 text-amber-300 font-sans shadow-sm">
               Mizaan-e-Ilm
             </span>
           </div>
-          <p class="text-[9px] sm:text-[11px] text-emerald-300/80 font-urdu leading-tight pt-0.5">
+          <p class="text-[11px] sm:text-xs md:text-sm text-emerald-300/90 font-urdu leading-[2.2] tracking-wide mt-0.5">
             مستند فتاویٰ و اسلامی تحقیقاتی ریفرنس پلیٹ فارم
           </p>
         </div>
@@ -3128,82 +3133,82 @@
 
     function renderFatwaResponse(res) {
       const container = document.getElementById('response-container');
-      let html = '<div class="space-y-6 font-urdu text-right">';
+      let html = '<div class="space-y-8 sm:space-y-10 font-urdu text-right">';
 
       // High Risk Alert
       if (res.isHighRisk) {
-        html += '<div class="bg-amber-950/40 border-2 border-amber-500/60 rounded-3xl p-5 shadow-xl text-amber-200 flex items-start gap-4">' +
-          '<i data-lucide="shield-alert" class="w-7 h-7 text-amber-400 flex-shrink-0 mt-1"></i>' +
-          '<div class="space-y-1 text-xs sm:text-sm">' +
-            '<h4 class="font-bold text-amber-300 text-base">حساس شرعی مسئلہ (نظرِ مفتی واجب ہے)</h4>' +
-            '<p class="leading-relaxed text-amber-100/90">یہ مسئلہ نکاح، طلاق، میراث یا حساس مالی امور کے زمرے میں آتا ہے۔ سسٹم کے تصدیق شدہ حوالہ جات نیچے درج ہیں، تاہم انفرادی صورتحال کے حتمی نفاذ کے لیے دار الافتاء کے باقاعدہ مفتی صاحب کی نظر و تصدیق ضروری ہے۔</p>' +
+        html += '<div class="bg-amber-950/50 border-2 border-amber-500/60 rounded-3xl p-6 sm:p-7 shadow-xl text-amber-200 flex items-start gap-4">' +
+          '<i data-lucide="shield-alert" class="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 flex-shrink-0 mt-1"></i>' +
+          '<div class="space-y-2 text-xs sm:text-sm">' +
+            '<h4 class="font-bold text-amber-300 text-base sm:text-lg">حساس شرعی مسئلہ (نظرِ مفتی واجب ہے)</h4>' +
+            '<p class="leading-[3.0] text-amber-100/90">یہ مسئلہ نکاح، طلاق، میراث یا حساس مالی امور کے زمرے میں آتا ہے۔ سسٹم کے تصدیق شدہ حوالہ جات نیچے درج ہیں، تاہم انفرادی صورتحال کے حتمی نفاذ کے لیے دار الافتاء کے باقاعدہ مفتی صاحب کی نظر و تصدیق ضروری ہے۔</p>' +
           '</div>' +
         '</div>';
       }
 
-        // Master Islamic Illuminated Manuscript Card
-        html += '<div class="fatwa-print-container relative rounded-2xl sm:rounded-3xl islamic-card border-2 border-amber-500/40 shadow-2xl p-4 sm:p-8 md:p-10 text-emerald-100 overflow-hidden">' +
+      // Master Islamic Illuminated Manuscript Card
+      html += '<div class="fatwa-print-container relative rounded-2xl sm:rounded-3xl islamic-card border-2 border-amber-500/50 shadow-2xl p-5 sm:p-8 md:p-10 text-emerald-100 overflow-hidden space-y-6 sm:space-y-8">' +
         
         // Actions Bar
-        '<div class="flex items-center justify-between border-b border-amber-600/20 pb-3 sm:pb-4 mb-5 sm:mb-6 no-print">' +
-          '<span class="text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full bg-[#05180f] border border-amber-600/40 text-amber-300">' + res.topicCategoryUrdu + '</span>' +
-          '<div class="flex items-center gap-1.5 sm:gap-2">' +
-            '<button onclick="playAudioTTS()" class="p-1.5 sm:p-2 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition cursor-pointer" title="آواز میں سنیں"><i data-lucide="volume-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>' +
-            '<button onclick="window.print()" class="p-1.5 sm:p-2 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition cursor-pointer" title="پرنٹ فرمائیں"><i data-lucide="printer" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>' +
-            '<button onclick="copyFatwaText()" id="copy-btn" class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition text-[11px] sm:text-xs font-medium cursor-pointer"><i data-lucide="copy" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i><span id="copy-btn-text">کاپی</span></button>' +
+        '<div class="flex items-center justify-between border-b border-amber-600/30 pb-4 mb-2 no-print">' +
+          '<span class="text-xs sm:text-sm font-semibold px-3 py-1 rounded-full bg-[#05180f] border border-amber-500/50 text-amber-300">' + res.topicCategoryUrdu + '</span>' +
+          '<div class="flex items-center gap-2 sm:gap-2.5">' +
+            '<button onclick="playAudioTTS()" class="p-2 sm:p-2.5 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition cursor-pointer" title="آواز میں سنیں"><i data-lucide="volume-2" class="w-4 h-4"></i></button>' +
+            '<button onclick="window.print()" class="p-2 sm:p-2.5 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition cursor-pointer" title="پرنٹ فرمائیں"><i data-lucide="printer" class="w-4 h-4"></i></button>' +
+            '<button onclick="copyFatwaText()" id="copy-btn" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#061d11] hover:bg-emerald-900/60 border border-amber-600/30 text-amber-200 transition text-xs sm:text-sm font-medium cursor-pointer"><i data-lucide="copy" class="w-4 h-4"></i><span id="copy-btn-text">کاپی</span></button>' +
           '</div>' +
         '</div>' +
 
         // Bismillah & Salam
-        '<div class="text-center space-y-1.5 sm:space-y-2 mb-6 sm:mb-8">' +
-          '<div class="text-xl sm:text-3xl font-bold font-arabic text-amber-300 tracking-wider">' + res.bismillah + '</div>' +
-          '<div class="text-sm sm:text-lg font-medium text-emerald-200 font-urdu">' + res.salam + '</div>' +
-          '<div class="islamic-divider max-w-xs mx-auto my-1.5 sm:my-2"><span>✦ ── ✤ ── ✦</span></div>' +
+        '<div class="text-center space-y-3 sm:space-y-4 my-4 sm:my-6">' +
+          '<div class="text-2xl sm:text-3xl md:text-4xl font-bold font-arabic text-amber-300 tracking-wider py-1">' + res.bismillah + '</div>' +
+          '<div class="text-base sm:text-xl font-medium text-emerald-200 font-urdu leading-[2.6]">' + res.salam + '</div>' +
+          '<div class="islamic-divider max-w-xs mx-auto my-3"><span>✦ ── ✤ ── ✦</span></div>' +
         '</div>' +
 
         // User Question
-        '<div class="mb-5 sm:mb-6 p-3.5 sm:p-5 rounded-2xl bg-[#030f08]/90 border border-amber-600/30 shadow-inner">' +
-          '<div class="text-xs font-bold text-amber-400 mb-1">استفسار / سوال:</div>' +
-          '<div class="text-base sm:text-xl text-white font-medium">' + res.userQuestion + '</div>' +
+        '<div class="p-5 sm:p-7 rounded-2xl bg-[#030f08]/90 border border-amber-600/40 shadow-inner space-y-2">' +
+          '<div class="text-xs sm:text-sm font-bold text-amber-400">استفسار / سوال:</div>' +
+          '<div class="text-base sm:text-xl md:text-2xl text-white font-medium leading-[3.0] sm:leading-[3.2]">' + res.userQuestion + '</div>' +
         '</div>';
 
       // Active Single School Banner if filtered
       if (res.traditionPositions && res.traditionPositions.length === 1 && res.effectiveTradition !== 'all') {
         const singleTrad = res.traditionPositions[0];
-        html += '<div class="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-l from-emerald-950/90 via-[#062417] to-emerald-950/90 border-2 border-amber-500/60 shadow-lg flex flex-wrap items-center justify-between gap-2">' +
-          '<div class="flex items-center gap-2">' +
+        html += '<div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-l from-emerald-950/90 via-[#062417] to-emerald-950/90 border-2 border-amber-500/60 shadow-lg flex flex-wrap items-center justify-between gap-3">' +
+          '<div class="flex items-center gap-2.5">' +
             '<span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>' +
             '<span class="font-bold text-amber-200 text-sm sm:text-base">باضابطہ فتویٰ مطابق: ' + singleTrad.traditionNameUrdu + '</span>' +
           '</div>' +
-          '<span class="text-xs text-emerald-300 bg-black/60 px-3 py-1 rounded-full border border-amber-600/40">' + (singleTrad.rulingLabelUrdu || 'مستند مآخذ') + '</span>' +
+          '<span class="text-xs sm:text-sm text-emerald-300 bg-black/60 px-3.5 py-1.5 rounded-full border border-amber-600/40">' + (singleTrad.rulingLabelUrdu || 'مستند مآخذ') + '</span>' +
         '</div>';
       }
 
       // Direct Fatwa Ruling Box
-      html += '<div class="mb-6 sm:mb-8 p-5 sm:p-7 rounded-2xl bg-gradient-to-r from-[#062b1b] via-[#051f14] to-[#04170e] border-2 border-amber-500/70 shadow-2xl space-y-2">' +
-        '<div class="flex items-center justify-between border-b border-amber-600/30 pb-2.5 mb-2">' +
+      html += '<div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#062b1b] via-[#051f14] to-[#04170e] border-2 border-amber-500/70 shadow-2xl space-y-3.5">' +
+        '<div class="flex items-center justify-between border-b border-amber-600/30 pb-3 mb-2">' +
           '<div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300">' +
             '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>' +
             '<span>حکمِ شرعی (Direct Fatwa Ruling):</span>' +
           '</div>' +
-          '<span class="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">فیصلہ کن حکم</span>' +
+          '<span class="text-xs sm:text-sm px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">فیصلہ کن حکم</span>' +
         '</div>' +
-        '<div class="text-base sm:text-xl md:text-2xl font-bold text-white leading-[2.6] sm:leading-[2.8] font-urdu">' +
+        '<div class="text-lg sm:text-2xl md:text-3xl font-bold text-white leading-[3.2] sm:leading-[3.5] font-urdu pt-1">' +
           res.shortAnswerUrdu +
         '</div>' +
       '</div>';
 
       // Actionable Layperson Advice Box (سائل کے لیے آسان رہنمائی و خلاصہ)
       if (res.actionAdviceUrdu) {
-        html += '<div class="mb-6 sm:mb-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-l from-[#062417] via-[#083320] to-[#062417] border-2 border-emerald-500/60 shadow-xl space-y-2">' +
-          '<div class="flex items-center justify-between border-b border-emerald-600/30 pb-2 mb-2">' +
+        html += '<div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-l from-[#062417] via-[#083320] to-[#062417] border-2 border-emerald-500/70 shadow-xl space-y-3.5">' +
+          '<div class="flex items-center justify-between border-b border-emerald-600/40 pb-3 mb-2">' +
             '<div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-300">' +
               '<i data-lucide="help-circle" class="w-4 h-4 text-amber-400"></i>' +
               '<span>سائل کے لیے آسان رہنمائی (خلاصہ برائے عوام الناس):</span>' +
             '</div>' +
-            '<span class="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-200 border border-emerald-500/40 font-urdu">کیا کرنا چاہیے</span>' +
+            '<span class="text-xs sm:text-sm px-3 py-1 rounded-full bg-emerald-950 text-emerald-200 border border-emerald-500/50 font-urdu font-bold">کیا کرنا چاہیے</span>' +
           '</div>' +
-          '<div class="text-sm sm:text-base md:text-lg font-medium text-emerald-100 leading-[2.6] sm:leading-[2.8] font-urdu">' +
+          '<div class="text-base sm:text-xl md:text-2xl font-medium text-emerald-100 leading-[3.2] sm:leading-[3.5] font-urdu pt-1">' +
             res.actionAdviceUrdu +
           '</div>' +
         '</div>';
@@ -3211,29 +3216,29 @@
 
       // Detailed Scholarly Explanation
       if (res.liveAi && res.liveAi !== res.shortAnswerUrdu) {
-        html += '<div class="mb-6 sm:mb-8 p-4 sm:p-7 rounded-2xl bg-gradient-to-b from-[#082215] to-[#04140c] border border-amber-600/30 shadow-xl space-y-3 sm:space-y-4">' +
-          '<div class="flex items-center justify-between border-b border-amber-600/20 pb-2.5 sm:pb-3">' +
-            '<div class="text-sm sm:text-base font-bold text-amber-200 flex items-center gap-1.5 sm:gap-2">' +
-              '<i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400"></i>' +
+        html += '<div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#082215] to-[#04140c] border border-amber-600/40 shadow-xl space-y-4 sm:space-y-5">' +
+          '<div class="flex items-center justify-between border-b border-amber-600/30 pb-3">' +
+            '<div class="text-sm sm:text-base font-bold text-amber-200 flex items-center gap-2">' +
+              '<i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>' +
               '<span>تفصیلی شرعی تشریح و فقہی دلائل:</span>' +
             '</div>' +
-            '<span class="text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-0.5 rounded-full bg-emerald-950 text-amber-300 border border-amber-600/40 font-urdu">مستند نصوص کی روشنی میں</span>' +
+            '<span class="text-xs sm:text-sm px-3 py-1 rounded-full bg-emerald-950 text-amber-300 border border-amber-600/40 font-urdu">مستند نصوص کی روشنی میں</span>' +
           '</div>' +
-          '<div class="text-sm sm:text-lg text-emerald-100 space-y-3 sm:space-y-4 pt-1 sm:pt-2 font-urdu">' +
-            res.liveAi.split('\n\n').map(p => '<p class="leading-[2.85] sm:leading-[3.05]">' + p.replace(/\n/g, '<br>') + '</p>').join('') +
+          '<div class="text-base sm:text-xl text-emerald-100 space-y-4 pt-2 font-urdu">' +
+            res.liveAi.split('\n\n').map(p => '<p class="leading-[3.2] sm:leading-[3.5]">' + p.replace(/\n/g, '<br>') + '</p>').join('') +
           '</div>' +
         '</div>';
       }
 
       // Quran Evidence
       if (res.quranicEvidence && res.quranicEvidence.length > 0) {
-        html += '<div class="mb-6 sm:mb-8 space-y-3 sm:space-y-4">' +
-          '<h4 class="text-sm sm:text-base font-bold text-amber-300 border-r-4 border-amber-500 pr-2.5 sm:pr-3">قرآن مجید کی روشنی میں:</h4>';
+        html += '<div class="space-y-4 sm:space-y-5">' +
+          '<h4 class="text-base sm:text-lg font-bold text-amber-300 border-r-4 border-amber-500 pr-3">قرآن مجید کی روشنی میں:</h4>';
         res.quranicEvidence.forEach(q => {
-          html += '<div class="p-4 sm:p-6 rounded-2xl bg-[#041209] border border-amber-500/30 space-y-3 shadow-md">' +
-            '<div class="text-xl sm:text-2xl font-arabic text-amber-200 text-center py-1.5 sm:py-2 leading-[2.6] sm:leading-[2.8]" dir="rtl">' + q.originalArabicText + '</div>' +
-            '<div class="text-sm sm:text-lg text-emerald-200 leading-[2.8] sm:leading-[3.0] border-t border-amber-600/20 pt-2.5 sm:pt-3"><span class="text-xs text-amber-400 font-bold ml-2">ترجمہ:</span>' + q.originalUrduText + '</div>' +
-            '<div class="text-[11px] sm:text-xs text-amber-300/80 font-sans border-t border-emerald-950 pt-2 flex flex-wrap justify-between gap-1"><span>سورة: ' + q.chapterUrdu + ' | آیت نمبر: ' + q.ayahNumber + '</span><span>ماخذ: King Fahd Quran Complex</span></div>' +
+          html += '<div class="p-5 sm:p-7 rounded-3xl bg-[#041209] border border-amber-500/30 space-y-4 shadow-md">' +
+            '<div class="text-2xl sm:text-3xl font-arabic text-amber-200 text-center py-2 leading-[3.0] sm:leading-[3.2]" dir="rtl">' + q.originalArabicText + '</div>' +
+            '<div class="text-base sm:text-xl text-emerald-200 leading-[3.2] sm:leading-[3.4] border-t border-amber-600/20 pt-3.5"><span class="text-xs sm:text-sm text-amber-400 font-bold ml-2">ترجمہ:</span>' + q.originalUrduText + '</div>' +
+            '<div class="text-xs sm:text-sm text-amber-300/80 font-sans border-t border-emerald-950 pt-2.5 flex flex-wrap justify-between gap-1"><span>سورة: ' + q.chapterUrdu + ' | آیت نمبر: ' + q.ayahNumber + '</span><span>ماخذ: King Fahd Quran Complex</span></div>' +
           '</div>';
         });
         html += '</div>';
@@ -3241,13 +3246,13 @@
 
       // Hadith Evidence
       if (res.hadithEvidence && res.hadithEvidence.length > 0) {
-        html += '<div class="mb-6 sm:mb-8 space-y-3 sm:space-y-4">' +
-          '<h4 class="text-sm sm:text-base font-bold text-emerald-300 border-r-4 border-amber-500 pr-2.5 sm:pr-3">احادیثِ مبارکہ کی روشنی میں:</h4>';
+        html += '<div class="space-y-4 sm:space-y-5">' +
+          '<h4 class="text-base sm:text-lg font-bold text-emerald-300 border-r-4 border-amber-500 pr-3">احادیثِ مبارکہ کی روشنی میں:</h4>';
         res.hadithEvidence.forEach(h => {
-          html += '<div class="p-4 sm:p-6 rounded-2xl bg-[#041209] border border-amber-500/30 space-y-3 shadow-md">' +
-            '<div class="text-lg sm:text-xl font-arabic text-emerald-200 text-center py-1.5 sm:py-2 leading-[2.6] sm:leading-[2.8]" dir="rtl">' + h.originalArabicText + '</div>' +
-            '<div class="text-sm sm:text-lg text-emerald-100 leading-[2.8] sm:leading-[3.0] border-t border-amber-600/20 pt-2.5 sm:pt-3"><span class="text-xs text-amber-400 font-bold ml-2">اردو ترجمہ:</span>' + h.originalUrduText + '</div>' +
-            '<div class="flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-amber-300 border-t border-emerald-950 pt-2 font-sans"><span>کتاب: ' + h.bookTitleUrdu + ' (حدیث: ' + h.hadithNumber + ')</span><span>باب: ' + h.chapterUrdu + '</span><span class="px-2 py-0.5 bg-emerald-950 border border-amber-600/40 rounded text-amber-300">درجہ: صحیح (متفق علیہ)</span></div>' +
+          html += '<div class="p-5 sm:p-7 rounded-3xl bg-[#041209] border border-amber-500/30 space-y-4 shadow-md">' +
+            '<div class="text-xl sm:text-2xl font-arabic text-emerald-200 text-center py-2 leading-[3.0] sm:leading-[3.2]" dir="rtl">' + h.originalArabicText + '</div>' +
+            '<div class="text-base sm:text-xl text-emerald-100 leading-[3.2] sm:leading-[3.4] border-t border-amber-600/20 pt-3.5"><span class="text-xs sm:text-sm text-amber-400 font-bold ml-2">اردو ترجمہ:</span>' + h.originalUrduText + '</div>' +
+            '<div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-amber-300 border-t border-emerald-950 pt-2.5 font-sans"><span>کتاب: ' + h.bookTitleUrdu + ' (حدیث: ' + h.hadithNumber + ')</span><span>باب: ' + h.chapterUrdu + '</span><span class="px-2.5 py-0.5 bg-emerald-950 border border-amber-600/40 rounded text-amber-300">درجہ: صحیح (متفق علیہ)</span></div>' +
           '</div>';
         });
         html += '</div>';
@@ -3255,38 +3260,38 @@
 
       // Disagreement / Comparative
       if (res.hasDisagreement && res.disagreementReasonUrdu) {
-        html += '<div class="mb-8 p-5 rounded-2xl bg-teal-950/40 border border-teal-500/40 space-y-2">' +
-          '<h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i data-lucide="scale" class="w-4 h-4 text-teal-400"></i><span>فقہی تنوع اور علمی دلائل:</span></h4>' +
-          '<p class="text-sm sm:text-base text-teal-100 leading-[2.8] sm:leading-[3.0]">' + res.disagreementReasonUrdu + '</p>' +
+        html += '<div class="p-6 sm:p-7 rounded-3xl bg-teal-950/40 border border-teal-500/40 space-y-3">' +
+          '<h4 class="text-sm sm:text-base font-bold text-teal-300 flex items-center gap-2"><i data-lucide="scale" class="w-4 h-4 text-teal-400"></i><span>فقہی تنوع اور علمی دلائل:</span></h4>' +
+          '<p class="text-base sm:text-lg text-teal-100 leading-[3.2] sm:leading-[3.4]">' + res.disagreementReasonUrdu + '</p>' +
         '</div>';
       }
 
       // Tradition Positions
       if (res.traditionPositions && res.traditionPositions.length > 0) {
-        html += '<div class="mb-8 space-y-6">' +
-          '<h4 class="text-base font-bold text-amber-200 border-r-4 border-amber-500 pr-3">مختلف مکاتبِ فکر کے مستند دار الافتاء، فتاویٰ ویب سائٹس و مفتیانِ کرام:</h4>' +
-          '<div class="grid grid-cols-1 gap-6">';
+        html += '<div class="space-y-6 sm:space-y-8">' +
+          '<h4 class="text-base sm:text-lg font-bold text-amber-200 border-r-4 border-amber-500 pr-3">مختلف مکاتبِ فکر کے مستند دار الافتاء، فتاویٰ ویب سائٹس و مفتیانِ کرام:</h4>' +
+          '<div class="grid grid-cols-1 gap-6 sm:gap-8">';
         res.traditionPositions.forEach(t => {
-          html += '<div class="rounded-2xl border border-amber-600/30 bg-[#05170e] overflow-hidden shadow-lg">' +
-            '<div class="bg-[#082215] px-5 py-3.5 border-b border-amber-600/30 flex flex-wrap items-center justify-between gap-2">' +
-              '<span class="font-bold text-amber-200 text-sm sm:text-base flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>' + t.traditionNameUrdu + '</span>' +
-              '<span class="text-xs text-emerald-300 bg-black/50 px-3 py-1 rounded-full border border-amber-600/30">' + t.rulingLabelUrdu + '</span>' +
+          html += '<div class="rounded-3xl border border-amber-600/40 bg-[#05170e] overflow-hidden shadow-xl">' +
+            '<div class="bg-[#082215] px-6 py-4 border-b border-amber-600/30 flex flex-wrap items-center justify-between gap-2.5">' +
+              '<span class="font-bold text-amber-200 text-base sm:text-lg flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>' + t.traditionNameUrdu + '</span>' +
+              '<span class="text-xs sm:text-sm text-emerald-300 bg-black/60 px-3.5 py-1 rounded-full border border-amber-600/30">' + t.rulingLabelUrdu + '</span>' +
             '</div>' +
-            '<div class="p-5 sm:p-6 space-y-5">';
+            '<div class="p-6 sm:p-8 space-y-6">';
 
           // Darul Ifta & Mufti Attribution Banner
-          html += '<div class="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-[#03150b] via-[#052213] to-[#03150b] border border-emerald-500/40 space-y-2.5 text-xs sm:text-sm font-urdu shadow-md">' +
-            '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-800/40 pb-2">' +
+          html += '<div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#03150b] via-[#052213] to-[#03150b] border border-emerald-500/40 space-y-3 text-xs sm:text-sm font-urdu shadow-md">' +
+            '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-800/40 pb-2.5">' +
               '<div class="flex items-center gap-2 text-amber-300 font-bold">' +
                 '<i data-lucide="landmark" class="w-4 h-4 text-amber-400"></i>' +
                 '<span>دار الافتاء و ادارہ:</span>' +
                 '<span class="text-emerald-100 font-medium">' + (t.darulIftaNameUrdu || 'مستند دار الافتاء') + '</span>' +
               '</div>' +
-              (t.fatwaPortalUrl ? '<a href="' + t.fatwaPortalUrl + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 bg-black/60 hover:bg-black/80 px-3 py-1 rounded-lg border border-amber-500/40 transition"><span>ویب پورٹل وزٹ کریں</span><i data-lucide="external-link" class="w-3.5 h-3.5 text-amber-400"></i></a>' : '') +
+              (t.fatwaPortalUrl ? '<a href="' + t.fatwaPortalUrl + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 bg-black/70 hover:bg-black px-3.5 py-1.5 rounded-xl border border-amber-500/40 transition shadow-sm"><span>ویب پورٹل وزٹ کریں</span><i data-lucide="external-link" class="w-3.5 h-3.5 text-amber-400"></i></a>' : '') +
             '</div>' +
-            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-emerald-200/90">' +
-              '<div><span class="text-amber-400 font-bold ml-1">مفتی / عالم:</span>' + (t.muftiOrScholarUrdu || 'مفتیانِ کرام دارالافتاء') + '</div>' +
-              '<div><span class="text-amber-400 font-bold ml-1">فتویٰ ماخذ / نمبر:</span>' + (t.fatwaNumberOrRef || t.rulingLabelUrdu || '-') + '</div>' +
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm text-emerald-200/90 leading-[2.6]">' +
+              '<div><span class="text-amber-400 font-bold ml-1.5">مفتی / عالم:</span>' + (t.muftiOrScholarUrdu || 'مفتیانِ کرام دارالافتاء') + '</div>' +
+              '<div><span class="text-amber-400 font-bold ml-1.5">فتویٰ ماخذ / نمبر:</span>' + (t.fatwaNumberOrRef || t.rulingLabelUrdu || '-') + '</div>' +
             '</div>' +
           '</div>';
 
@@ -3300,10 +3305,10 @@
             publisher: 'مکتبہ دار الافتاء'
           }];
           pList.forEach(p => {
-            html += '<div class="space-y-2">' +
-              '<div class="flex items-center gap-1.5 text-xs font-bold text-amber-400"><i data-lucide="book-open" class="w-3.5 h-3.5"></i><span>اصل ماخذ / کتاب و فتویٰ کی عبارت:</span></div>' +
-              '<blockquote class="p-4 rounded-xl bg-black/60 border-r-4 border-amber-500 text-emerald-100 text-sm sm:text-base leading-[2.8] sm:leading-[3.0]">' + (p.originalUrduText || p.originalArabicText || '') + '</blockquote>' +
-              '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-900/50 text-amber-300/80">' +
+            html += '<div class="space-y-3">' +
+              '<div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-400"><i data-lucide="book-open" class="w-4 h-4"></i><span>اصل ماخذ / کتاب و فتویٰ کی عبارت:</span></div>' +
+              '<blockquote class="p-5 sm:p-6 rounded-2xl bg-black/70 border-r-4 border-amber-500 text-emerald-100 text-base sm:text-lg leading-[3.2] sm:leading-[3.5]">' + (p.originalUrduText || p.originalArabicText || '') + '</blockquote>' +
+              '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs bg-emerald-950/40 p-3 rounded-xl border border-emerald-900/50 text-amber-300/90">' +
                 '<div><strong>کتاب:</strong> ' + (p.bookTitleUrdu || '-') + '</div>' +
                 '<div><strong>مصنف / مفتی:</strong> ' + (p.authorUrdu || '-') + '</div>' +
                 '<div><strong>جلد / صفحہ:</strong> ' + (p.volume || '-') + ' / ' + (p.page || '-') + '</div>' +
@@ -3313,9 +3318,9 @@
           });
 
           // Scholarly Explanation
-          html += '<div class="border-t border-amber-600/20 pt-3 space-y-2">' +
-            '<div class="text-xs font-bold text-amber-300">فقہی استدلال و تشریح:</div>' +
-            '<p class="text-sm sm:text-base text-emerald-100/90 leading-[2.8] sm:leading-[3.0] bg-[#031109] p-4 rounded-xl border border-emerald-900/40">' + t.aiExplanationUrdu + '</p>' +
+          html += '<div class="border-t border-amber-600/30 pt-4 space-y-2.5">' +
+            '<div class="text-xs sm:text-sm font-bold text-amber-300">فقہی استدلال و تشریح:</div>' +
+            '<p class="text-base sm:text-lg text-emerald-100/90 leading-[3.2] sm:leading-[3.5] bg-[#031109] p-5 sm:p-6 rounded-2xl border border-emerald-900/40">' + t.aiExplanationUrdu + '</p>' +
           '</div>' +
           '</div></div>';
         });
@@ -3327,7 +3332,7 @@
       safeCreateIcons();
     }
 
-    function copyFatwaText() {
+        function copyFatwaText() {
       if (!currentResponse) return;
       const res = currentResponse;
       const tLines = (res.traditionPositions || []).map(t => {
