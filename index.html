@@ -2868,6 +2868,11 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
               '</div>' +
             '</div>' +
           '</div>';
+
+          // Auto-scroll directly to the research portion immediately
+          const yOffset = -75;
+          const y = container.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
         }
 
         setTimeout(async () => {
