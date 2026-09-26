@@ -2322,44 +2322,186 @@
       };
     }
 
+        function sanitizeUrduText(text) {
+      if (!text || typeof text !== 'string') return text;
+
+      let s = text;
+
+      // 1. Remove robotic filler prefixes and AI intros
+      s = s.replace(/^(معزز|محترم|محترمہ)\s*سائل[،,\s!۔]*/gi, '');
+      s = s.replace(/آپ\s*کے\s*سوال\s*کا\s*جواب\s*(یہ\s*ہے\s*کہ|درج\s*ذیل\s*ہے)[\s:،,!۔]*/gi, '');
+      s = s.replace(/جہاں\s*تک\s*آپ\s*کے\s*سوال\s*کا\s*تعلق\s*ہے[\s:،,!۔]*/gi, '');
+      s = s.replace(/امید\s*ہے\s*(کہ\s*)?آپ\s*کو\s*جواب\s*مل\s*گیا\s*ہوگا[۔.!]*/gi, '');
+      s = s.replace(/جدید\s*دور\s*کی\s*روشنی\s*میں/gi, 'شرعی اصولوں کی روشنی میں');
+      s = s.replace(/اسلامی\s*نقطہ\s*نظر\s*سے/gi, 'شرعی رو سے');
+
+      // 2. Grammatical gender and verb-agreement fixes in Islamic terminology
+      const exactReplacements = [
+        // Wudu (وضو - مذکر)
+        [/وضو\s+ٹوٹ\s+جاتی\s+ہے/g, 'وضو ٹوٹ جاتا ہے'],
+        [/وضو\s+باطل\s+ہو\s+جاتی\s+ہے/g, 'وضو باطل ہو جاتا ہے'],
+        [/وضو\s+فاسد\s+ہو\s+جاتی\s+ہے/g, 'وضو فاسد ہو جاتا ہے'],
+        [/وضو\s+لازم\s+ہوتی\s+ہے/g, 'وضو لازم ہوتا ہے'],
+        [/وضو\s+کرنی\s+چاہیے/g, 'وضو کرنا چاہیے'],
+        [/وضو\s+کرنی\s+چاہئیے/g, 'وضو کرنا چاہیے'],
+
+        // Salah (نماز - مؤنث)
+        [/نماز\s+ٹوٹ\s+جاتا\s+ہے/g, 'نماز ٹوٹ جاتی ہے'],
+        [/نماز\s+باطل\s+ہو\s+جاتا\s+ہے/g, 'نماز باطل ہو جاتی ہے'],
+        [/نماز\s+فاسد\s+ہو\s+جاتا\s+ہے/g, 'نماز فاسد ہو جاتی ہے'],
+        [/نماز\s+قضا\s+ہو\s+جاتا\s+ہے/g, 'نماز قضا ہو جاتی ہے'],
+        [/نماز\s+پڑھنا\s+ہوتا\s+ہے/g, 'نماز پڑھنی ہوتی ہے'],
+        [/نماز\s+ادا\s+کرنا\s+ہوتا\s+ہے/g, 'نماز ادا کرنی ہوتی ہے'],
+        [/نماز\s+قضا\s+کرنا\s+ہوتا\s+ہے/g, 'نماز قضا کرنی ہوتی ہے'],
+
+        // Fast / Sawm (روزہ - مذکر)
+        [/روزہ\s+ٹوٹ\s+جاتی\s+ہے/g, 'روزہ ٹوٹ جاتا ہے'],
+        [/روزہ\s+باطل\s+ہو\s+جاتی\s+ہے/g, 'روزہ باطل ہو جاتا ہے'],
+        [/روزہ\s+فاسد\s+ہو\s+جاتی\s+ہے/g, 'روزہ فاسد ہو جاتا ہے'],
+        [/روزہ\s+مکروہ\s+ہو\s+جاتی\s+ہے/g, 'روزہ مکروہ ہو جاتا ہے'],
+        [/روزہ\s+رکھنی\s+چاہیے/g, 'روزہ رکھنا چاہیے'],
+
+        // Ghusl (غسل - مذکر)
+        [/غسل\s+فرض\s+ہوتی\s+ہے/g, 'غسل فرض ہوتا ہے'],
+        [/غسل\s+واجب\s+ہوتی\s+ہے/g, 'غسل واجب ہوتا ہے'],
+        [/غسل\s+کرنی\s+چاہیے/g, 'غسل کرنا چاہیے'],
+
+        // Zakat (زکوٰۃ - مؤنث)
+        [/زکوٰۃ\s+فرض\s+ہوتا\s+ہے/g, 'زکوٰۃ فرض ہوتی ہے'],
+        [/زکوٰۃ\s+واجب\s+ہوتا\s+ہے/g, 'زکوٰۃ واجب ہوتی ہے'],
+        [/زکوٰۃ\s+دینا\s+ہوتا\s+ہے/g, 'زکوٰۃ دینی ہوتی ہے'],
+        [/زکوٰۃ\s+ادا\s+کرنا\s+ہوتا\s+ہے/g, 'زکوٰۃ ادا کرنی ہوتی ہے'],
+
+        // Sajdah Sahw (سجدہ سہو - مذکر)
+        [/سجدہ\s*سہو\s+واجب\s+ہوتی\s+ہے/g, 'سجدہ سہو واجب ہوتا ہے'],
+        [/سجدہ\s*سہو\s+لازم\s+ہوتی\s+ہے/g, 'سجدہ سہو لازم ہوتا ہے'],
+        [/سجدہ\s*سہو\s+کرنی\s+چاہیے/g, 'سجدہ سہو کرنا چاہیے'],
+
+        // Talaq (طلاق - مؤنث) & Nikah (نکاح - مذکر)
+        [/طلاق\s+واقع\s+ہو\s+جاتا\s+ہے/g, 'طلاق واقع ہو جاتی ہے'],
+        [/نکاح\s+باطل\s+ہو\s+جاتی\s+ہے/g, 'نکاح باطل ہو جاتا ہے'],
+        [/نکاح\s+فاسد\s+ہو\s+جاتی\s+ہے/g, 'نکاح فاسد ہو جاتا ہے'],
+        [/نکاح\s+ٹوٹ\s+جاتی\s+ہے/g, 'نکاح ٹوٹ جاتا ہے'],
+
+        // Qurbani (قربانی - مؤنث)
+        [/قربانی\s+واجب\s+ہوتا\s+ہے/g, 'قربانی واجب ہوتی ہے'],
+        [/قربانی\s+کرنا\s+ہوتا\s+ہے/g, 'قربانی کرنی ہوتی ہے'],
+
+        // Izafat and prepositions
+        [/کے\s+روشنی\s+میں/g, 'کی روشنی میں'],
+        [/کے\s+بنیاد\s+پر/g, 'کی بنیاد پر'],
+        [/کے\s+بناء\s+پر/g, 'کی بناء پر'],
+        [/کے\s+رو\s+سے/g, 'کی رو سے'],
+        [/کے\s+رعایت\s+سے/g, 'کی رعایت سے'],
+        [/کے\s+تحت\s+میں/g, 'کے تحت'],
+        [/اس\s+کی\s+حکم/g, 'اس کا حکم'],
+        [/اس\s+کا\s+وضاحت/g, 'اس کی وضاحت'],
+
+        // Orthography & Plurals
+        [/چاہئیے/g, 'چاہیے'],
+        [/چاہیئے/g, 'چاہیے'],
+        [/پائے\s+جاتی\s+ہے/g, 'پائی جاتی ہے'],
+        [/مسائلیں/g, 'مسائل'],
+        [/احکاموں/g, 'احکام'],
+        [/دلائلوں/g, 'دلائل'],
+        [/فتاووں/g, 'فتاویٰ'],
+        [/فتاویٰ\s*جات/g, 'فتاویٰ'],
+        [/فتویٰ\s*جات/g, 'فتاویٰ'],
+        [/قرآنی\s+آیاتوں/g, 'قرآنی آیات'],
+        [/احادیثوں/g, 'احادیث'],
+        [/روایتوں/g, 'روایات'],
+        [/عبادتوں/g, 'عبادات'],
+        [/شرطوں/g, 'شرائط'],
+        [/سنت\s+موکدہ/g, 'سنتِ مؤکدہ'],
+        [/سنت\s+مؤکدہ/g, 'سنتِ مؤکدہ'],
+        [/سنت\s+غیر\s+موکدہ/g, 'سنتِ غیر مؤکدہ'],
+        [/سنت\s+غیر\s+مؤکدہ/g, 'سنتِ غیر مؤکدہ'],
+        [/علماء\s+کرام/g, 'علمائے کرام'],
+        [/فقہاء\s+کرام/g, 'فقہائے کرام'],
+        [/ائمہ\s+کرام/g, 'ائمۂ کرام'],
+        [/مشائخ\s+عظام/g, 'مشائخِ عظام'],
+        [/اہل\s+سنت/g, 'اہلِ سنت'],
+        [/اہل\s+حدیث/g, 'اہلِ حدیث'],
+        [/اہل\s+تشیع/g, 'اہلِ تشیع'],
+        [/دارالافتا/g, 'دار الافتاء'],
+        [/دارالافتاء/g, 'دار الافتاء'],
+
+        // Spacing
+        [/ہوجاتی\s+ہے/g, 'ہو جاتی ہے'],
+        [/ہوجاتا\s+ہے/g, 'ہو جاتا ہے'],
+        [/ہوجاتے\s+ہیں/g, 'ہو جاتے ہیں'],
+        [/کرلینا/g, 'کر لینا'],
+        [/کرلیں/g, 'کر لیں'],
+        [/کرلیتا/g, 'کر لیتا'],
+        [/پڑھلیں/g, 'پڑھ لیں'],
+        [/دیکھلیں/g, 'دیکھ لیں'],
+        [/دیجاتی\s+ہے/g, 'دی جاتی ہے'],
+        [/دیاجاتا\s+ہے/g, 'دیا جاتا ہے'],
+        [/کیاجاسکتا\s+ہے/g, 'کیا جا سکتا ہے'],
+        [/کیجاسکتی\s+ہے/g, 'کی جا سکتی ہے'],
+        [/ہوسکتا\s+ہے/g, 'ہو سکتا ہے'],
+        [/ہوسکتی\s+ہے/g, 'ہو سکتی ہے']
+      ];
+
+      for (const [pattern, replacement] of exactReplacements) {
+        s = s.replace(pattern, replacement);
+      }
+
+      // Cleanup extra spaces
+      s = s.replace(/[\t ]+/g, ' ').trim();
+
+      return s;
+    }
+
     function normalizeAIResult(data, traditionFilter) {
       if (!data) return null;
       if (data.isUnanswerable) {
         return {
           isUnanswerable: true,
-          refusalUrdu: data.refusalUrdu || data.shortAnswerUrdu || data.shortAnswer || 'اس مسئلے کا مصدقہ اور واضح حکم کتبِ فقہ یا مستند دار الافتاء کی ویب سائٹس پر دستیاب نہیں ہے۔ شرعی معاملات نہایت نازک اور حساس ہوتے ہیں، اس لیے غیر مصدقہ یا من گھڑت قیاس آرائی کی قطعی اجازت نہیں۔ سائل سے گزارش ہے کہ اپنے قریبی مستند دار الافتاء سے بالمشافہ رجوع فرمائیں۔'
+          refusalUrdu: sanitizeUrduText(data.refusalUrdu || data.shortAnswerUrdu || data.shortAnswer || 'اس مسئلے کا مصدقہ اور واضح حکم کتبِ فقہ یا مستند دار الافتاء کی ویب سائٹس پر دستیاب نہیں ہے۔ شرعی معاملات نہایت نازک اور حساس ہوتے ہیں، اس لیے غیر مصدقہ یا من گھڑت قیاس آرائی کی قطعی اجازت نہیں۔ سائل سے گزارش ہے کہ اپنے قریبی مستند دار الافتاء سے بالمشافہ رجوع فرمائیں۔')
         };
       }
 
-      let shortAnswer = data.shortAnswerUrdu || data.shortAnswer || data.answer || data.ruling || '';
-      let actionAdvice = data.actionAdviceUrdu || data.actionAdvice || '';
-      let liveAi = data.liveAi || data.explanation || data.detailedExplanationUrdu || shortAnswer;
+      let shortAnswer = sanitizeUrduText(data.shortAnswerUrdu || data.shortAnswer || data.answer || data.ruling || '');
+      let actionAdvice = sanitizeUrduText(data.actionAdviceUrdu || data.actionAdvice || '');
+      let liveAi = sanitizeUrduText(data.liveAi || data.explanation || data.detailedExplanationUrdu || shortAnswer);
       if (typeof liveAi === 'boolean') liveAi = shortAnswer;
 
       let quran = [];
       if (Array.isArray(data.quranicEvidence) && data.quranicEvidence.length > 0) {
-        quran = data.quranicEvidence;
+        quran = data.quranicEvidence.map(q => ({
+          originalArabicText: q.originalArabicText || q.text || q.arabic || '',
+          originalUrduText: sanitizeUrduText(q.originalUrduText || q.translation || q.urdu || ''),
+          chapterUrdu: sanitizeUrduText(q.chapterUrdu || q.surah || ''),
+          ayahNumber: q.ayahNumber || q.ayah || ''
+        }));
       } else if (data.quran) {
         const qObj = data.quran;
         quran = [{
           originalArabicText: qObj.text || qObj.originalArabicText || qObj.arabic || '',
-          originalUrduText: qObj.translation || qObj.originalUrduText || qObj.urdu || '',
-          chapterUrdu: qObj.surah || qObj.chapterUrdu || '',
+          originalUrduText: sanitizeUrduText(qObj.translation || qObj.originalUrduText || qObj.urdu || ''),
+          chapterUrdu: sanitizeUrduText(qObj.surah || qObj.chapterUrdu || ''),
           ayahNumber: qObj.ayah || qObj.ayahNumber || ''
         }];
       }
 
       let hadith = [];
       if (Array.isArray(data.hadithEvidence) && data.hadithEvidence.length > 0) {
-        hadith = data.hadithEvidence;
+        hadith = data.hadithEvidence.map(h => ({
+          originalArabicText: h.originalArabicText || h.text || h.arabic || '',
+          originalUrduText: sanitizeUrduText(h.originalUrduText || h.translation || h.urdu || ''),
+          bookTitleUrdu: sanitizeUrduText(h.bookTitleUrdu || h.book || 'کتبِ احادیث'),
+          hadithNumber: h.hadithNumber || h.number || '',
+          chapterUrdu: sanitizeUrduText(h.chapterUrdu || h.chapter || '')
+        }));
       } else if (data.hadith) {
         const hObj = data.hadith;
         hadith = [{
           originalArabicText: hObj.text || hObj.originalArabicText || hObj.arabic || '',
-          originalUrduText: hObj.translation || hObj.originalUrduText || hObj.urdu || '',
-          bookTitleUrdu: hObj.book || hObj.bookTitleUrdu || 'کتبِ احادیث',
+          originalUrduText: sanitizeUrduText(hObj.translation || hObj.originalUrduText || hObj.urdu || ''),
+          bookTitleUrdu: sanitizeUrduText(hObj.book || hObj.bookTitleUrdu || 'کتبِ احادیث'),
           hadithNumber: hObj.number || hObj.hadithNumber || '',
-          chapterUrdu: hObj.chapter || hObj.chapterUrdu || ''
+          chapterUrdu: sanitizeUrduText(hObj.chapter || hObj.chapterUrdu || '')
         }];
       }
 
@@ -2407,51 +2549,57 @@
           const meta = defaultSchoolMeta[key] || defaultSchoolMeta['deobandi'];
           return {
             tradition: key,
-            traditionNameUrdu: t.traditionNameUrdu || meta.traditionNameUrdu,
-            darulIftaNameUrdu: t.darulIftaNameUrdu || meta.darulIftaNameUrdu,
+            traditionNameUrdu: sanitizeUrduText(t.traditionNameUrdu || meta.traditionNameUrdu),
+            darulIftaNameUrdu: sanitizeUrduText(t.darulIftaNameUrdu || meta.darulIftaNameUrdu),
             fatwaPortalUrl: t.fatwaPortalUrl || meta.fatwaPortalUrl,
-            muftiOrScholarUrdu: t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu,
-            fatwaNumberOrRef: t.fatwaNumberOrRef || t.rulingLabelUrdu || meta.rulingLabelUrdu,
-            rulingLabelUrdu: t.rulingLabelUrdu || meta.rulingLabelUrdu,
-            positionSummaryUrdu: t.positionSummaryUrdu || t.ruling || t.position || shortAnswer,
-            aiExplanationUrdu: t.aiExplanationUrdu || t.explanation || liveAi,
-            passages: Array.isArray(t.passages) && t.passages.length > 0 ? t.passages : [{
-              originalUrduText: t.positionSummaryUrdu || 'مستند شرعی فتویٰ و حوالہ',
-              bookTitleUrdu: t.rulingLabelUrdu || meta.rulingLabelUrdu,
-              authorUrdu: t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu,
+            muftiOrScholarUrdu: sanitizeUrduText(t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu),
+            fatwaNumberOrRef: sanitizeUrduText(t.fatwaNumberOrRef || t.rulingLabelUrdu || meta.rulingLabelUrdu),
+            rulingLabelUrdu: sanitizeUrduText(t.rulingLabelUrdu || meta.rulingLabelUrdu),
+            positionSummaryUrdu: sanitizeUrduText(t.positionSummaryUrdu || t.ruling || t.position || shortAnswer),
+            aiExplanationUrdu: sanitizeUrduText(t.aiExplanationUrdu || t.explanation || liveAi),
+            passages: (Array.isArray(t.passages) && t.passages.length > 0 ? t.passages : [{
+              originalUrduText: sanitizeUrduText(t.positionSummaryUrdu || 'مستند شرعی فتویٰ و حوالہ'),
+              bookTitleUrdu: sanitizeUrduText(t.rulingLabelUrdu || meta.rulingLabelUrdu),
+              authorUrdu: sanitizeUrduText(t.muftiOrScholarUrdu || meta.muftiOrScholarUrdu),
               volume: '1',
               page: 'مستند صفحہ',
               publisher: 'مکتبہ دار الافتاء'
-            }]
+            }]).map(p => ({
+              ...p,
+              originalUrduText: sanitizeUrduText(p.originalUrduText || p.originalArabicText || ''),
+              bookTitleUrdu: sanitizeUrduText(p.bookTitleUrdu || ''),
+              authorUrdu: sanitizeUrduText(p.authorUrdu || ''),
+              publisher: sanitizeUrduText(p.publisher || '')
+            }))
           };
         });
       } else if (data.fatwa && typeof data.fatwa === 'object') {
         const f = data.fatwa;
         if (f.Deobandi || f.deobandi) {
           const meta = defaultSchoolMeta.deobandi;
-          positions.push({ tradition: 'deobandi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Deobandi || f.deobandi, aiExplanationUrdu: f.Deobandi || f.deobandi, passages: [] });
+          positions.push({ tradition: 'deobandi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: sanitizeUrduText(f.Deobandi || f.deobandi), aiExplanationUrdu: sanitizeUrduText(f.Deobandi || f.deobandi), passages: [] });
         }
         if (f.Barelvi || f.barelvi) {
           const meta = defaultSchoolMeta.barelvi;
-          positions.push({ tradition: 'barelvi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Barelvi || f.barelvi, aiExplanationUrdu: f.Barelvi || f.barelvi, passages: [] });
+          positions.push({ tradition: 'barelvi', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: sanitizeUrduText(f.Barelvi || f.barelvi), aiExplanationUrdu: sanitizeUrduText(f.Barelvi || f.barelvi), passages: [] });
         }
         if (f.AhleHadith || f.ahle_hadith) {
           const meta = defaultSchoolMeta.ahle_hadith;
-          positions.push({ tradition: 'ahle_hadith', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.AhleHadith || f.ahle_hadith, aiExplanationUrdu: f.AhleHadith || f.ahle_hadith, passages: [] });
+          positions.push({ tradition: 'ahle_hadith', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: sanitizeUrduText(f.AhleHadith || f.ahle_hadith), aiExplanationUrdu: sanitizeUrduText(f.AhleHadith || f.ahle_hadith), passages: [] });
         }
         if (f.Shia || f.shia) {
           const meta = defaultSchoolMeta.shia;
-          positions.push({ tradition: 'shia', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: f.Shia || f.shia, aiExplanationUrdu: f.Shia || f.shia, passages: [] });
+          positions.push({ tradition: 'shia', traditionNameUrdu: meta.traditionNameUrdu, darulIftaNameUrdu: meta.darulIftaNameUrdu, fatwaPortalUrl: meta.fatwaPortalUrl, muftiOrScholarUrdu: meta.muftiOrScholarUrdu, fatwaNumberOrRef: meta.rulingLabelUrdu, rulingLabelUrdu: meta.rulingLabelUrdu, positionSummaryUrdu: sanitizeUrduText(f.Shia || f.shia), aiExplanationUrdu: sanitizeUrduText(f.Shia || f.shia), passages: [] });
         }
       }
 
       return {
-        topicCategoryUrdu: data.topicCategoryUrdu || 'فقہی تحقیقات و فتاویٰ',
+        topicCategoryUrdu: sanitizeUrduText(data.topicCategoryUrdu || 'فقہی تحقیقات و فتاویٰ'),
         shortAnswerUrdu: shortAnswer,
         actionAdviceUrdu: actionAdvice || 'سائل کے لیے آسان شرعی ہدایت یہ ہے کہ اس حکم پر دیانت داری سے عمل کریں اور شبہات سے بچ کر احتیاط و تقویٰ کی راہ اختیار فرمائیں۔',
         liveAi: liveAi,
         hasDisagreement: data.hasDisagreement || (positions.length > 1),
-        disagreementReasonUrdu: data.disagreementReasonUrdu || null,
+        disagreementReasonUrdu: sanitizeUrduText(data.disagreementReasonUrdu || null),
         quranicEvidence: quran,
         hadithEvidence: hadith,
         traditionPositions: positions,
@@ -2459,7 +2607,7 @@
       };
     }
 
-    // Live AI Router with Ultra-Fast Multi-Model Pipeline (Groq 120B / Qwen / Gemini / Pollinations)
+    // Live AI Router with Ultra-Fast Multi-Model Pipeline (Groq / Gemini / Pollinations)
     async function fetchFullIslamicResearchFromAI(question, traditionFilter) {
       const apiKey = getActiveApiKey();
       const traditionNamesUrdu = {
@@ -2524,7 +2672,7 @@
       // 1. Primary High-Speed Engine: Groq Models (openai/gpt-oss-120b, qwen/qwen3.8-27b)
       const groqKey = (apiKey && apiKey.startsWith('gsk_')) ? apiKey : DEFAULT_GROQ_KEY;
       if (groqKey) {
-        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'allam-2-7b'];
+        const groqModels = ['llama-3.3-70b-versatile', 'qwen-2.5-32b', 'openai/gpt-oss-120b'];
         for (const m of groqModels) {
           try {
             const controller = new AbortController();
@@ -2542,7 +2690,7 @@
                   { role: 'system', content: sysPrompt },
                   { role: 'user', content: userPrompt }
                 ],
-                response_format: { type: 'json_object' }
+                response_format: { type: 'json_object' }, temperature: 0.1, max_tokens: 2048
               })
             });
             clearTimeout(timeoutId);
