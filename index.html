@@ -1112,7 +1112,10 @@
 
     function searchSources(question, traditionFilter) {
       const q = question.toLowerCase();
-      const tokens = q.replace(/[؟?،,۔.!:؛]/g, ' ').split(/\s+/).filter(t => t.length > 1);
+      const stopWords = new Set(['to', 'ko', 'ka', 'ki', 'ke', 'na', 'ho', 'is', 'us', 'in', 'me', 'se', 'par', 'ye', 'wo', 'k', 'hai', 'hain', 'tha', 'thi', 'the', 'kya', 'kia', 'koi', 'agar', 'aur', 'or', 'ya', 'dy', 'sakty', 'sakte', 'bhi', 'karo', 'karen', 'کا', 'کی', 'کے', 'کو', 'سے', 'پر', 'میں', 'ہے', 'ہیں', 'تھا', 'تھی', 'تھے', 'کیا', 'کہ', 'اور', 'یا', 'نہ', 'ہو', 'تو', 'اس', 'ان', 'یہ', 'وہ', 'بھی']);
+      const tokens = q.replace(/[؟?،,۔.!:؛]/g, ' ').split(/\s+/).filter(t => t.length > 2 && !stopWords.has(t));
+
+      if (tokens.length === 0) return [];
 
       return sourcesDatabase.filter(src => {
         if (traditionFilter !== 'all') {
@@ -1123,10 +1126,13 @@
           }
         }
 
-        const inKeywords = src.keywords && src.keywords.some(k => q.includes(k.toLowerCase()) || tokens.some(t => k.toLowerCase().includes(t)));
-        const inTitle = src.bookTitleUrdu && (src.bookTitleUrdu.toLowerCase().includes(q) || tokens.some(t => src.bookTitleUrdu.toLowerCase().includes(t)));
-        const inChapter = src.chapterUrdu && (src.chapterUrdu.toLowerCase().includes(q) || tokens.some(t => src.chapterUrdu.toLowerCase().includes(t)));
-        const inText = src.originalUrduText && (src.originalUrduText.toLowerCase().includes(q) || (tokens.length >= 2 && tokens.some(t => src.originalUrduText.toLowerCase().includes(t))));
+        const inKeywords = src.keywords && src.keywords.some(k => {
+          const kLow = k.toLowerCase();
+          return q.includes(kLow) || tokens.some(t => t === kLow || (t.length > 3 && kLow === t));
+        });
+        const inTitle = src.bookTitleUrdu && tokens.some(t => src.bookTitleUrdu.toLowerCase().includes(t));
+        const inChapter = src.chapterUrdu && tokens.some(t => src.chapterUrdu.toLowerCase().includes(t));
+        const inText = src.originalUrduText && tokens.length >= 2 && tokens.filter(t => src.originalUrduText.toLowerCase().includes(t)).length >= 2;
 
         return inKeywords || inChapter || inTitle || inText;
       });
@@ -2326,7 +2332,7 @@
       }
 
       // 37. Adoption, Lineage & Unclaimed / Orphan Children (لے پالک بچہ، لاقیط، گود لینا اور اپنا نام یا ولدیت دینے کا شرعی حکم)
-      if (q.includes('ماں باپ کا معلوم') || q.includes('ماں باپ کا پتہ') || q.includes('والدین کا معلوم') || q.includes('والدین کا پتہ') || q.includes('اپنا نام دے سکتے') || q.includes('اپنا نام دینا') || q.includes('اپنا نام دیں') || q.includes('لے پالک') || q.includes('گود لیا') || q.includes('گود لینا') || q.includes('بچے کو گود') || q.includes('بچی کو گود') || q.includes('لاقیط') || q.includes('ولدیت میں اپنا نام') || q.includes('شناختی کارڈ میں نام') || q.includes('بچے کو اپنا نام') || q.includes('ولدیت تبدیل')) {
+      if (q.includes('ماں باپ کا معلوم') || q.includes('ماں باپ کا پتہ') || q.includes('والدین کا معلوم') || q.includes('والدین کا پتہ') || q.includes('اپنا نام دے سکتے') || q.includes('اپنا نام دینا') || q.includes('اپنا نام دیں') || q.includes('لے پالک') || q.includes('گود لیا') || q.includes('گود لینا') || q.includes('بچے کو گود') || q.includes('بچی کو گود') || q.includes('لاقیط') || q.includes('ولدیت میں اپنا نام') || q.includes('شناختی کارڈ میں نام') || q.includes('بچے کو اپنا نام') || q.includes('ولدیت تبدیل') || (q.includes('bachcha') || q.includes('bacha') || q.includes('child') || q.includes('orphan') || q.includes('god') || q.includes('palak') || q.includes('laqeet')) && (q.includes('name') || q.includes('naam') || q.includes('maa bap') || q.includes('maloom') || q.includes('pata') || q.includes('walid') || q.includes('adopt'))) {
         return {
           topicCategoryUrdu: 'احکامِ رضاعت، لے پالک بچہ، لاقیط و نسبتِ ولدیت',
           shortAnswerUrdu: 'کسی ایسے بچے کی پرورش اور کفالت کرنا جس کے ماں باپ کا علم نہ ہو (لاقیط یا یتیم) عظیم ثواب اور کارِ خیر ہے، لیکن اس بچے کو اپنی ولدیت دینا یا سرکاری کاغذات (شناختی کارڈ، ب فارم، پاسپورٹ) میں اپنا نام بطورِ والد لکھوانا تمام مکاتبِ فکر (دیوبندی، بریلوی، اہلِ حدیث، شیعہ) کے نزدیک قطعی حرام اور گناہِ کبیرہ ہے۔ قرآن مجید کا صریح حکم ہے: "ادْعُوهُمْ لِآبَائِهِمْ هُوَ أَقْسَطُ عِندَ اللَّهِ" (انہیں ان کے اصل باپوں کے نام سے پکارو)۔ اگر اصل باپ معلوم نہ ہو تو ولدیت میں عبد اللہ یا کوئی عام نام لکھا جائے یا سرپرست (Guardian) کی حیثیت درج کی جائے، اپنا نام بطورِ والد لکھوانا قطعی جائز نہیں۔',
