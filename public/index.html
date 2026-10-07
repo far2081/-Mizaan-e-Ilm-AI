@@ -2829,7 +2829,12 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
         '     1. نفاس کی زیادہ سے زیادہ مدت 40 دن ہے (یا سائلہ کی سابقہ عادت)۔ 40 دن مکمل ہونے پر نفاس ختم ہو جاتا ہے اور غسلِ طہارت فرض ہوتا ہے۔\n' +
         '     2. نفاس اور حیض کے درمیان کم از کم 15 دن کا طہر (پاکی کا فاصلہ) ہونا قطعی شرط ہے۔ لہٰذا 40 دن کے بعد اگلے 15 دن کا خون خالصتاً "استحاضہ (بیماری کا خون)" شمار ہوگا، جس میں عورت پاک کہلائے گی اور ہر نماز کے وقت نیا وضو کر کے نماز پڑھنا فرض ہوگا۔\n' +
         '     3. 15 دن کا طہر مکمل ہونے کے بعد وہ اپنی حمل سے پہلے والی "سابقہ ماہواری کی عادت" کی تاریخوں کے مطابق حیض شمار کرے گی۔ عادت کے دن حیض ہوں گے اور درمیانی بقیہ تمام دن طہر و استحاضہ ہوں گے۔\n' +
-        '   - عورت کا بغیر محرم سفر / حج و عمرہ: کسی نامحرم یا اجنبی شخص کو محرم یا رفیقِ سفر بنانا شریعت میں باطل اور حرام ہے۔ شرعی محرم صرف شوہر یا وہ مرد ہیں جن سے نکاح ہمیشہ کے لیے حرام ہے (باپ، بیٹا، بھائی، چچا، ماموں، سسر وغیرہ)۔ شوافع و معاصر اہلِ حدیث کے ہاں اگر رخصت ہے تو صرف "باکردار خواتین کے محفوظ قافلے (الرفقة المأمونة من النساء)" کے ساتھ ہے، نامحرم مردوں کے ساتھ ہرگز نہیں۔ NEVER suggest traveling with a "معتبر مرد" or non-mahram. State clearly: "سفر میں شوہر یا شرعی محرم کا ساتھ ہونا لازم ہے، نامحرم مرد کے ساتھ سفر ہرگز جائز نہیں۔"\n\n' +
+        '   - عورت کے شرعی محارم و رشتہ داری (Mahram Kinship Terminology):\n' +
+        '     * بہن کا بیٹا = بھانجا (خالہ کے لیے شرعی محرمِ ابدی ہے)۔\n' +
+        '     * بھائی کا بیٹا = بھتیجا (پھوپھی کے لیے شرعی محرمِ ابدی ہے)۔\n' +
+        '     * بیٹے کا بیٹا = پوتا، بیٹی کا بیٹا = نواسہ۔\n' +
+        '     * شرعی محارم (باپ، بیٹا، بھائی، چچا، ماموں، بھتیجا، بھانجا، سسر، داماد) کے ساتھ عورت کا سفر، حج اور عمرہ کرنا تمام مکاتبِ فکر (دیوبندی، بریلوی، اہلِ حدیث، شیعہ) کے نزدیک بالاتفاق اور بالاِجماع قطعی جائز ہے۔\n' +
+        '   - عورت کا بغیر محرم سفر / حج و عمرہ: کسی نامحرم یا اجنبی شخص کو محرم یا رفیقِ سفر بنانا شریعت میں باطل اور حرام ہے۔ شوافع و معاصر اہلِ حدیث کے ہاں اگر اکیلی عورت کو رخصت ہے تو صرف "باکردار خواتین کے محفوظ قافلے (الرفقة المأمونة من النساء)" کے ساتھ ہے، نامحرم مردوں کے ساتھ ہرگز نہیں۔ NEVER suggest traveling with a "معتبر مرد" or non-mahram. State clearly: "سفر میں شوہر یا شرعی محرم کا ساتھ ہونا لازم ہے، نامحرم مرد کے ساتھ سفر ہرگز جائز نہیں۔"\n\n' +
         '4. AUTHENTIC FATWA SITES, MUFTIS & CLASSICAL SOURCES:\n' +
         '   - For each school, provide the official Darul Ifta name, verified Fatwa Portal URL, recognized Mufti / Board name, and exact Fatwa / Book reference:\n' +
         '     * Deobandi: دارالافتاء جامعہ علوم اسلامیہ علامہ بنوری ٹاؤن (https://www.banuri.edu.pk/fatwa) / دارالعلوم دیوبند (https://darulifta-deoband.com) / مفتی محمد تقی عثمانی / مفتی عبد الرحیم\n' +
@@ -2941,7 +2946,7 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
       // 3. Tertiary Engine: Free High-Quality Research Endpoint (Pollinations AI)
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 28000);
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
         const res = await fetch('https://text.pollinations.ai/', {
           method: 'POST',
           signal: controller.signal,
@@ -2951,8 +2956,7 @@ const sysPrompt = 'You are "Mizaan-e-Ilm AI" (میزانِ علم) — an authen
               { role: 'system', content: sysPrompt },
               { role: 'user', content: userPrompt }
             ],
-            model: 'openai',
-            jsonMode: true
+            model: 'openai'
           })
         });
         clearTimeout(timeoutId);
